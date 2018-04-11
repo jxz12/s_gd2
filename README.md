@@ -1,2 +1,2 @@
-# s_gd2
-Stochastic Gradient Descent for Graph Drawing, or s(gd)²
+# s(gd)²
+Stochastic Gradient Descent for Graph Drawing
