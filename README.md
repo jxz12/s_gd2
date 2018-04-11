@@ -1,5 +1,5 @@
 # s(gd)²
-Stochastic Gradient Descent for Graph Drawing
+Stochastic Gradient Descent for Graph Drawing [<https://arxiv.org/abs/1710.04626>]
 
 ![image](comparison.gif)
 
