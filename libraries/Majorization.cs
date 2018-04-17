@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GraphStuff;
 
 public static class Majorization {
-    public static IEnumerable<double> Chol(int[,] d, Vector2[] positions, double eps=0.00001, int maxIter=1000) {
+    public static IEnumerable<double> Chol(int[,] d, Vector2[] positions, double eps=0.0001, int maxIter=1000) {
         int n = positions.Length;
 
         // first find the laplacian for the left hand side
@@ -114,7 +114,7 @@ public static class Majorization {
         }
     }
 
-    public static IEnumerable<double> Local(int[,] d, Vector2[] positions, double eps=0.00001, int maxIter=100) {
+    public static IEnumerable<double> Local(int[,] d, Vector2[] positions, double eps=0.0001, int maxIter=100) {
         int n = positions.Length;
 
         double prevStress = GraphIO.CalculateStress(d, positions, n);
