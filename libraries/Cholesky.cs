@@ -2,7 +2,7 @@ using System;
 
 public static class Cholesky {
 
-    // choldc from numerical recipes p97, except that a new matrix is created and returned instead of placing back into a.
+    // choldc from numerical recipes p97
     public static void Choldc(double[,] a, double[] p) {
         int n = a.GetLength(0);
         if (a.GetLength(1) != n) {
