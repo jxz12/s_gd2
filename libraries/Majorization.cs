@@ -57,7 +57,8 @@ public static class Majorization {
         }
     }
 
-    public static IEnumerable<int> Conj(int[,] d, Vector2[] positions, int numIterations=100) {
+    
+    public static IEnumerable<double> Conj(int[,] d, Vector2[] positions, double eps=0.0001, int maxIter=1000) {
         int n = positions.Length;
 
         // first find the laplacian for the left hand side
@@ -90,8 +91,9 @@ public static class Majorization {
         var p = new double[n-1];
         var Ap = new double[n-1];
 
+        double prevStress = GraphIO.CalculateStress(d, positions, n);
         // majorize
-        for (int k=0; k<numIterations; k++) {
+        for (int k=0; k<maxIter; k++) {
             PositionLaplacian(deltas, positions, LXt, n);
 
             // solve for x axis
@@ -104,15 +106,20 @@ public static class Majorization {
             ConjugateGradient.Cg(Lw, Xt1, LXt_Xt, r, p, Ap, .1, 10);
             for (int i=1; i<n; i++) positions[i].y = Xt1[i-1];
 
-            yield return k;
+            double stress = GraphIO.CalculateStress(d, positions, n);
+            yield return stress;
+            if ((prevStress - stress) / prevStress < eps)
+                yield break;
+            prevStress = stress;
         }
     }
 
-    public static IEnumerable<int> Local(int[,] d, Vector2[] positions, int numIterations=100) {
+    public static IEnumerable<double> Local(int[,] d, Vector2[] positions, double eps=0.00001, int maxIter=100) {
         int n = positions.Length;
 
+        double prevStress = GraphIO.CalculateStress(d, positions, n);
         // majorize
-        for (int k=0; k<numIterations; k++) {
+        for (int k=0; k<maxIter; k++) {
             for (int i=0; i<n; i++) {
 
                 double topSumX=0, topSumY=0, botSum=0;
@@ -133,13 +140,13 @@ public static class Majorization {
                 positions[i] = new Vector2(newX, newY);
             }
 
-            yield return k;
+            double stress = GraphIO.CalculateStress(d, positions, n);
+            yield return stress;
+            if ((prevStress - stress) / prevStress < eps)
+                yield break;
+            prevStress = stress;
         }
     }
-
-
-
-
 
 
     // weight = w_ij
