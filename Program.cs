@@ -10,7 +10,7 @@ using GraphStuff;
 public class Program {
     public static void Main(string[] args) {
 
-		string graphDir = args[0];
+	string graphDir = args[0];
         SparseMatrix<bool> adjMatrix = GraphIO.Read(graphDir);
 			
         using (StreamWriter file = new StreamWriter(args[1]))
