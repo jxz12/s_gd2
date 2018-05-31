@@ -23,7 +23,7 @@ public class Program {
             GraphIO.Write(args[2], X, adjMatrix);
         }
     }
-
+                                   //   APSP    layout     stress
     public static Vector2[] Stress(Func<int[,], Vector2[], IEnumerable<double>> Layout, SparseMatrix<bool> adjMatrix, StreamWriter file)
     {
         int n = adjMatrix.MaxIdx() + 1;
