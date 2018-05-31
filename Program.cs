@@ -18,7 +18,7 @@ public class Program {
             Vector2[] X = Stress((d, x) => Sgd2.Full(d, x, Sgd2.Schedule(d, 0.1, 15)), adjMatrix, file);
             //Vector2[] X = Stress((d, x) => Majorization.Chol(d, x), adjMatrix, file);
             //Vector2[] X = Stress((d, x) => Sgd2.Adaptive(d, x, 0.001), adjMatrix, file);
-            //Vector2[] X = Stress((d, x) => GradientDescent.Full(d, x, .02, 100))
+            //Vector2[] X = Stress((d, x) => GradientDescent.Full(d, x, .02, 100), adjMatrix, file);
 
             GraphIO.Write(args[2], X, adjMatrix);
         }
