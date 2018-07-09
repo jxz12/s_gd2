@@ -13,7 +13,8 @@ except AttributeError:
 
 # sgd extension module
 _s_gd2 = Extension("_s_gd2",
-                   ["layout.i", "layout.cpp"],
+                   sources=["layout.i", "layout.cpp"],
+                   swig_opts=['-c++'],
                    include_dirs = [numpy_include],
                    )
 

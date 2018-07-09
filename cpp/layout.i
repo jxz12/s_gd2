@@ -16,7 +16,7 @@
 
 %include "layout.hpp"
 
-%rename (layout) my_layout;
+%rename (sgd) my_layout;
 %exception my_layout {
     $action
     if (PyErr_Occurred()) SWIG_fail;
@@ -24,9 +24,9 @@
 
 %inline %{
     void my_layout(double* X, int n, int kd,
-                     double* d, int len_d,
-                     double* w, int len_w,
-                     double* eta, int len_eta) {
+                   double* d, int len_d,
+                   double* w, int len_w,
+                   double* eta, int len_eta) {
 
         if (kd != 2) {
             PyErr_Format(PyExc_ValueError, "positions not 2D");
@@ -37,7 +37,7 @@
             PyErr_Format(PyExc_ValueError, "Arrays not nC2");
             return;
         }
-        layout(n, X, d, w, len_eta, eta);
+        sgd(n, X, d, w, len_eta, eta);
     }
 %}
 
