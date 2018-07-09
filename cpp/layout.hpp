@@ -5,8 +5,7 @@
 #include <ctime>
 #include <cstdlib>
 
-std::vector<std::vector<double> > sgd(const std::vector<double> &d, const std::vector<double> &w, const std::vector<double> &eta);
-double** sgd(int n, double* d, double* w, int t_max, double* eta);
+void sgd(int n, double* X, double* d, double* w, int t_max, double* eta);
 
 template <class T>
 void fisher_yates(std::vector<T> &list)
