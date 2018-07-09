@@ -1,10 +1,11 @@
 #include <vector>
 #include <cmath>
+#include <iostream>
 
 #include "layout.hpp"
 
 struct term {
-	term(int i, int j, int d, int w) : i(i), j(j), d(d), w(w) {}
+	term(int i, int j, double d, double w) : i(i), j(j), d(d), w(w) {}
 	int i, j;
 	double d, w;
 };
@@ -16,13 +17,13 @@ void sgd(int n, double* X, double* d, double* w, int t_max, double* eta)
 	// initialize SGD
 	std::vector<term> terms;
 	terms.reserve(nC2);
-	int ij = 0;
+    int ij = 0;
 	for (int i=0; i<n; i++)
 	{
 		for (int j=i+1; j<n; j++)
 		{
 			terms.push_back(term(i, j, d[ij], w[ij]));
-			ij += 1;
+            ij += 1;
 		}
 	}
  

@@ -1,7 +1,9 @@
+print('starting wrangle')
 # get graph in sparse matrix format
 import networkx as nx
 
 G = nx.karate_club_graph()
+# G = nx.cycle_graph(10)
 S = nx.to_scipy_sparse_matrix(G)
 
 # calculate distances and weights
@@ -25,3 +27,18 @@ eta = eta_max * np.exp(lambd*eta)
 # initialize positions
 n = G.number_of_nodes()
 X = np.random.rand(n, 2)
+
+print('starting sgd')
+
+# optimize
+import s_gd2
+s_gd2.sgd(X, d, w, eta)
+
+print('sgd done')
+
+# draw
+import matplotlib.pyplot as plt
+nx.draw(G, pos=X)
+plt.axis('equal')
+plt.savefig('karate.png')
+
