@@ -1,0 +1,16 @@
+package:
+    name: s_gd2
+    version: 0
+    
+source:
+    folder: /Users/jz/Work/s_gd2/cpp
+    
+requirements:
+    build:
+        - python
+        - setuptools
+    run:
+        - python
+        - networkx
+        - numpy
+        - scipy 
