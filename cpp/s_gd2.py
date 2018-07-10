@@ -102,3 +102,32 @@ sgd = _s_gd2.sgd
 # This file is compatible with both classic and new-style classes.
 
 
+import networkx as nx
+import scipy.sparse.csgraph as csg
+import scipy.spatial.distance as ssd
+import numpy as np
+
+def layout_nx(G, t_max=15, mu_min=.1):
+    # calculate shortest paths and weights
+    S = nx.to_scipy_sparse_matrix(G)
+    d = csg.shortest_path(S, directed=False, unweighted=True)
+    d = ssd.squareform(d)
+    w = 1/d**2
+
+    # prepare annealing schedule
+    eta_max = 1/min(w)
+    eta_min = mu_min/max(w)
+    lambd = np.log(eta_min/eta_max) / (t_max-1)
+
+    eta = np.arange(t_max)
+    eta = eta_max * np.exp(lambd*eta)
+
+    # initialize positions
+    n = G.number_of_nodes()
+    X = np.random.rand(n, 2)
+
+    sgd(X, d, w, eta)
+    return X
+    
+
+
