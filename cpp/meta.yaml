@@ -3,11 +3,12 @@ package:
     version: 0
     
 source:
-    folder: /Users/jz/Work/s_gd2/cpp
+    folder: /Users/jz/Work/s_gd2/cpp/
     
 requirements:
     build:
         - python
+        - numpy
         - setuptools
     run:
         - python
