@@ -3,7 +3,7 @@ package:
     version: 0
     
 source:
-    folder: /Users/jz/Work/s_gd2/cpp/
+    path: ../
     
 requirements:
     build:
