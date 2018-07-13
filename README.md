@@ -9,7 +9,7 @@ The graph data used comes from <https://sparse.tamu.edu>, downloaded in .mat for
 
 A Jupyter notebook is also provided, which is rather slow, but serves as a good introduction to the algorithm. It can even be rendered directly in GitHub, showing the output for the graph `qh882`, as well as `commanche_dual` in an implementation of the Sparse Stress Model of Ortmann et al. [<https://arxiv.org/abs/1608.08909>].
 
-A fast Python version is also provided, implemented in C++ using SWIG to generate bindings. It may be installed with `pip` using
+A fast Python version is also available, implemented in C++ using SWIG to generate bindings. It may be installed using
 ```
 pip install s_gd2
 ```
