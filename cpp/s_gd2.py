@@ -101,13 +101,18 @@ def sgd(*args) -> "void":
 sgd = _s_gd2.sgd
 # This file is compatible with both classic and new-style classes.
 
-
 import networkx as nx
 import scipy.sparse.csgraph as csg
 import scipy.spatial.distance as ssd
 import numpy as np
 
 def layout_nx(G, t_max=15, mu_min=.1):
+    """takes a networkx graph G and returns a dictionary of positions X that can be used by
+    nx.Draw(G, pos=X)"""
+
+    if nx.number_connected_components(G) > 1:
+        raise Exception("graph has multiple connected components")
+
     # calculate shortest paths and weights
     S = nx.to_scipy_sparse_matrix(G)
     d = csg.shortest_path(S, directed=False, unweighted=True)
@@ -126,8 +131,13 @@ def layout_nx(G, t_max=15, mu_min=.1):
     n = G.number_of_nodes()
     X = np.random.rand(n, 2)
 
+    # perform SGD
     sgd(X, d, w, eta)
-    return X
-    
 
+    # get dictionary of positions
+    nodes = list(G)
+    pos = {}
+    for i in range(len(nodes)):
+        pos[nodes[i]] = X[i]
+    return pos
 

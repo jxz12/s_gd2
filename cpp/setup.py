@@ -1,29 +1,28 @@
-# System imports
-from distutils.core import *
-from distutils      import sysconfig
+from setuptools import setup
+from setuptools.extension import Extension
 
 # Third-party modules - we depend on numpy for everything
 import numpy
-
 # Obtain the numpy include directory.  This logic works across numpy versions.
 try:
     numpy_include = numpy.get_include()
 except AttributeError:
     numpy_include = numpy.get_numpy_include()
 
-# sgd extension module
-_s_gd2 = Extension("_s_gd2",
-                   #sources=["layout.i", "layout.cpp"],
-                   #swig_opts=['-c++'],
-                   sources=["layout_wrap.cxx", "layout.cpp"],
-                   include_dirs = [numpy_include],
-                   )
 
-# sgd setup
-setup(name        = "stochastic gradient descent for graph drawing",
-      description = "sgd() takes an array of 2d positions, condensed distance matrices d and w, and a step size schedule eta, and minimizes stress.",
-      author      = "Jonathan Zheng",
-      version     = "1.0",
-      py_modules  = ["s_gd2"],
-      ext_modules = [_s_gd2]
+_s_gd2 = Extension(
+    name="_s_gd2",
+    sources=["layout_wrap.cxx", "layout.cpp"],
+    include_dirs = [numpy_include]
 )
+
+setup(
+    name="s_gd2",
+    version="0",
+    author="Jonathan Zheng",
+    author_email="jxz12@ic.ac.uk",
+    description="A package for performing stochastic gradient descent (arXiv:1710.04626) to layout graphs",
+    py_modules=['s_gd2'],
+    ext_modules=[_s_gd2]
+)
+
