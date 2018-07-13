@@ -1,7 +1,7 @@
 %module s_gd2
 %{
     #define SWIG_FILE_WITH_INIT
-    #include "layout.hpp"
+    extern void sgd(int n, double* X, double* d, double* w, int t_max, double* eta);
 %}
 
 %include "numpy.i"
@@ -15,7 +15,8 @@
 %apply (double* IN_ARRAY1, int DIM1){(double* d, int len_d),
                                      (double* w, int len_w),
                                      (double* eta, int len_eta)}
-%include "layout.hpp"
+
+extern void sgd(int n, double* X, double* d, double* w, int t_max, double* eta);
 
 %rename (sgd) my_layout;
 %exception my_layout {

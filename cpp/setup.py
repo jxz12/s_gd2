@@ -9,16 +9,15 @@ try:
 except AttributeError:
     numpy_include = numpy.get_numpy_include()
 
-
 _s_gd2 = Extension(
     name="_s_gd2",
     sources=["layout_wrap.cxx", "layout.cpp"],
-    include_dirs=[numpy_include, "."]
+    include_dirs=[numpy_include]
 )
 
 setup(
     name="s_gd2",
-    version="0.0",
+    version="0.11",
     author="Jonathan Zheng",
     author_email="jxz12@ic.ac.uk",
     description="A package for performing stochastic gradient descent (arXiv:1710.04626) to layout graphs",

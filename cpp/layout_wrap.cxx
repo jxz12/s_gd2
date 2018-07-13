@@ -3112,7 +3112,7 @@ namespace swig {
 
 
     #define SWIG_FILE_WITH_INIT
-    #include "layout.hpp"
+    extern void sgd(int n, double* X, double* d, double* w, int t_max, double* eta);
 
 
 #ifndef SWIG_FILE_WITH_INIT
