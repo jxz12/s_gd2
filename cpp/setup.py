@@ -18,11 +18,11 @@ _s_gd2 = Extension(
 
 setup(
     name="s_gd2",
-    version="0",
+    version="0.0",
     author="Jonathan Zheng",
     author_email="jxz12@ic.ac.uk",
     description="A package for performing stochastic gradient descent (arXiv:1710.04626) to layout graphs",
-    install_requires=['numpy', 'scipy', 'networkx'],
+    install_requires=['numpy', 'scipy'],
     setup_requires=['numpy'],
     py_modules=['s_gd2'],
     ext_modules=[_s_gd2]

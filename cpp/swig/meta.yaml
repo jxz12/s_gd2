@@ -12,6 +12,5 @@ requirements:
         - setuptools
     run:
         - python
-        - networkx
         - numpy
         - scipy 
