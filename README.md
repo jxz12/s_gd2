@@ -20,5 +20,5 @@ import networkx as nx
 G = nx.balanced_tree(2,9)
 S = nx.to_scipy_sparse_matrix(G)
 X = s_gd2.layout_scipy(S)
-nx.draw(G, pos=X, node_size=1)
+nx.draw(G, pos=X, node_size=5)
 ```
