@@ -19,6 +19,10 @@ G = nx.balanced_tree(2,9)
 S = nx.to_scipy_sparse_matrix(G)
 X = s_gd2.layout_scipy(S)
 nx.draw(G, pos=X, node_size=0)
+
+import matplotlib.pyplot as plt
+plt.axis('equal')
+plt.show()
 ```
 
 A Jupyter notebook is also provided, which is rather slow, but serves as a good introduction to the algorithm. It can even be rendered directly in GitHub, showing the output for the graph `qh882`, as well as `commanche_dual` in an implementation of the Sparse Stress Model of Ortmann et al. [<https://arxiv.org/abs/1608.08909>].
