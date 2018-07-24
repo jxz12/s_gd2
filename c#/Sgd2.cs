@@ -79,75 +79,7 @@ public static class Sgd2
             yield return stress;
         }
     }
-
-    public static IEnumerable<double> Adaptive(int[,] d, Vector2[] positions, double eps=0.001, int maxIter=1000) {
-        int n = positions.Length;
-        int nn = (n*(n-1))/2;
-
-        var pairs = CreatePairs(n);
-        var rnd = new Random();
-
-        double prevStress = GraphIO.CalculateStress(d, positions, n);
-        int t = 0, numSteps = 15;
-        double cMin = 0.1;
-        Func<int, double> Eta = ExpDecay(EtaMax(d), cMin, numSteps);
-        double c = Eta(t);
-
-        // relax
-        for (int it=0; it<maxIter; it++) {
-            GraphIO.FYShuffle2(pairs, rnd);
-
-            var prevPositions = (Vector2[])positions.Clone();
-            double maxMovement = 0;
-            for (int ij=0; ij<nn; ij++)
-            {
-                int i = pairs[ij, 0], j = pairs[ij, 1];
-                double r = Satisfy(ref positions[i], ref positions[j], d[i, j], c);
-
-                maxMovement = Math.Max(maxMovement, r*r);
-            }
-
-            double stress = GraphIO.CalculateStress(d, positions, n);
-            yield return stress;
-
-            //Console.Error.WriteLine("                      " + c + " " + maxMovement);
-            if (maxMovement < eps)
-                yield break;
-
-            if (prevStress - stress < 0)
-                c = Eta(t++);
-			
-            prevStress = stress;
-        }
-
-    }
-
-
-    public static IEnumerable<double> Ordered(int[,] d, Vector2[] positions, IEnumerable<double> eta)
-    {
-        int n = positions.Length;
-        int nn = (n*(n-1))/2;
-
-        var pairs = CreatePairs(n);
-
-        var indices = new int[nn];
-        for (int i = 0; i < nn; i++)
-            indices[i] = i;
-        GraphIO.FYShuffle(indices, new Random());
-
-        var result = indices.OrderByDescending(ij => d[pairs[ij, 0], pairs[ij, 1]]);
-
-        // relax
-        foreach (double c in eta) {
-            foreach (int ij in result)
-            {
-                int i = pairs[ij, 0], j = pairs[ij, 1];
-                Satisfy(ref positions[i], ref positions[j], d[i,j], c);
-            }
-            yield return GraphIO.CalculateStress(d, positions, n);
-        }
-
-    }
+	
     public static IEnumerable<double> Once(int[,] d, Vector2[] positions, IEnumerable<double> eta) {
         int n = positions.Length;
         int nn = (n*(n-1))/2;
@@ -166,6 +98,7 @@ public static class Sgd2
             yield return GraphIO.CalculateStress(d, positions, n);
         }
     }
+	
     public static IEnumerable<double> NoRand(int[,] d, Vector2[] positions, IEnumerable<double> eta) {
         int n = positions.Length;
 
@@ -271,145 +204,10 @@ public static class Sgd2
             yield return GraphIO.CalculateStress(d, positions, n);
         }
     }
-    public static IEnumerable<double> Sliced(int[,] d, Vector2[] positions, IEnumerable<double> eta)
-    {
-        int n = positions.Length;
-        int nn = (n*(n-1))/2;
 
-        int numSlices = 2000;
-        int blockSize = (nn + numSlices - 1) / numSlices;
-        var slices = new int[numSlices][];
-
-        int ij = 0;
-        for (int i=0; i<numSlices-1; i++)
-        {
-            slices[i] = new int[blockSize];
-            for (int j = 0; j < blockSize; j++)
-                slices[i][j] = ij++;
-        }
-        int lastBlock = nn - ij;
-        slices[numSlices - 1] = new int[lastBlock];
-        for (int j = 0; j < lastBlock; j++)
-            slices[numSlices - 1][j] = ij++;
-
-        //for (int s = 0; s < numSlices; s++)
-        //{
-        //    Console.ReadLine();
-        //    for (int idx = 0; idx < slices[s].Length; idx++)
-        //    {
-        //        Console.Error.WriteLine(slices[s][idx]);
-        //    }
-        //}
-
-
-        var rnd = new Random();
-        foreach (double c in eta)
-        {
-            GraphIO.FYShuffle(slices, rnd);
-            for (int s=0; s<numSlices; s++)
-            {
-                GraphIO.FYShuffle(slices[s], rnd);
-                for (int b=0; b<slices[s].Length; b++)
-                {
-                    int idx = slices[s][b];
-                    int i = (int)( (1+Math.Sqrt(8*idx+1))/2 );
-                    int j = idx - (i*(i-1))/2;
-                    
-                    Satisfy(ref positions[i], ref positions[j], d[i,j], c);
-                }
-            }
-            yield return GraphIO.CalculateStress(d, positions, n);
-        }
-    }
-    private class Mom
-    {
-        public int i;
-        public int j;
-        public Vector2 m;
-        public Mom(int i, int j, Vector2 m)
-        {
-            this.i = i;
-            this.j = j;
-            this.m = m;
-        }
-    }
-    public static IEnumerable<double> Momentum(int[,] d, Vector2[] positions, IEnumerable<double> eta) {
-        int n = positions.Length;
-        int nn = (n*(n-1))/2;
-
-        var pairs = CreatePairs(n);
-        var rnd = new Random();
-        //Func<int, double> Cooling = ExpDecay(CMax(d), 1, numIterations);
-        //Func<int, double> Cooling = Reciprocal(d, cMin, numIterations);
-        //Func<int, double> Cooling = Cosine(d, cMin, numIterations);
-
-        double beta = .5;
-        //int mo = 3;
-        //var momentum = new Queue<Mom>();
-        //for (int i = 0; i < mo; i++)
-        //    momentum.Enqueue(new Mom(0, 0, new Vector2(0, 0)));
-
-        var momentum = new Vector2[n];
-
-        // relax
-        foreach (double c in eta) {
-            GraphIO.FYShuffle2(pairs, rnd);
-
-            for (int ij=0; ij<nn; ij++)
-            {
-                int i = pairs[ij, 0], j = pairs[ij, 1];
-                Vector2 pq = positions[i] - positions[j];
-                // mag is |p-q|
-                double mag = pq.Magnitude();
-                // r is minimum distance each vertex has to move to satisfy the constraint
-                double r = (mag-d[i,j]) / 2;
-
-                double w_ij = 1.0 / (d[i,j] * d[i,j]);
-                // weight by a maximum of 2
-                double wc = w_ij * c;
-                if (wc > limit)
-                    wc = limit;
-                r = wc * r;
-
-                Vector2 m = pq * r / mag;
-                positions[i] -= m;
-                positions[j] += m;
-
-                momentum[i] -= m;
-                momentum[j] += m;
-
-                //momentum.Enqueue(new Mom(i, j, m));
-                //momentum.Dequeue();
-
-                //foreach (var a in momentum)
-                //{
-                //    positions[a.i] -= a.m;
-                //    positions[a.j] += a.m;
-                //    a.m *= beta;
-                //}
-            }
-            for (int i=0; i<n; i++)
-            {
-                momentum[i] *= beta;
-                positions[i] += momentum[i];
-            }
-            yield return GraphIO.CalculateStress(d, positions, n);
-        }
-    }
-
-    static void OverSatisfy(ref Vector2 x_i, ref Vector2 x_j, double d_ij, double c)
-    {
-        Vector2 pq = x_i - x_j;
-        // mag is |p-q|
-        double mag = pq.Magnitude();
-        // r is minimum distance each vertex has to move to satisfy the constraint
-        double om = Math.Min(1.0 / (d_ij * d_ij) * c, 1);
-        double r = om*(mag-d_ij)/2;
-
-        Vector2 m = pq * r / mag;
-        x_i -= 2*m;
-        x_j += 2*m;
-    }
+    //////////////////////////////////////////////////////////
+    // FUNCTIONS BELOW USED TO GENERATE ANNEALING SCHEDULES //
+    //////////////////////////////////////////////////////////
     static double EtaMax(int[,] d)
     {
         int n = d.GetLength(0), m = d.GetLength(1);

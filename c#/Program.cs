@@ -10,7 +10,7 @@ using GraphStuff;
 public class Program {
     public static void Main(string[] args) {
 
-	string graphDir = args[0];
+        string graphDir = args[0];
         SparseMatrix<bool> adjMatrix = GraphIO.Read(graphDir);
 			
         using (StreamWriter file = new StreamWriter(args[1]))
@@ -46,7 +46,7 @@ public class Program {
             for (int i=1; i<n; i++)
                 positions[i] = new Vector2(rnd.NextDouble(), rnd.NextDouble());
             
-			sw.Restart();
+            sw.Restart();
 			
             int iteration = 0;
             foreach (double stress in Layout(shortestPaths, positions))
