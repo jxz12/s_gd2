@@ -18,7 +18,7 @@ _s_gd2 = Extension(
 
 setup(
     name="s_gd2",
-    version="0.12",
+    version="0.13",
     author="Jonathan Zheng",
     author_email="jxz12@ic.ac.uk",
     description="A package for performing stochastic gradient descent (arXiv:1710.04626) to layout graphs",
