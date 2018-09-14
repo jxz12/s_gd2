@@ -9,8 +9,8 @@ try:
 except AttributeError:
     numpy_include = numpy.get_numpy_include()
 
-_s_gd2 = Extension(
-    name="_s_gd2",
+_layout = Extension(
+    name="_layout",
     sources=["layout_wrap.cxx", "layout.cpp"],
     extra_compile_args=["-std=c++11"],
     include_dirs=[numpy_include]
@@ -24,7 +24,7 @@ setup(
     description="A package for performing stochastic gradient descent (arXiv:1710.04626) to layout graphs",
     install_requires=['numpy', 'scipy'],
     setup_requires=['numpy'],
-    py_modules=['s_gd2'],
-    ext_modules=[_s_gd2]
+    py_modules=['s_gd2', 'layout'],
+    ext_modules=[_layout]
 )
 

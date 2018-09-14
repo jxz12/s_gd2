@@ -1,4 +1,4 @@
-%module s_gd2
+%module layout
 %{
     #define SWIG_FILE_WITH_INIT
     extern void sgd_direct(int n, double* X, double* d, double* w, int t_max, double* eta);
