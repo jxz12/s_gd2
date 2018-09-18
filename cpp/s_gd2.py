@@ -45,7 +45,7 @@ def init_eta(w, t_max, mu_min):
 
     return eta
 
-def layout_scipy_focus(S, f, weighted=False, t_max=15, mu_min=.1):
+def layout_scipy_focus(S, f, weighted=False, t_max=20, mu_min=.01):
     """takes a scipy sparse matrix S with n vertices
     and returns a n-by-2 matrix of positions X with minimized stress
     and a focus on vertex f"""
@@ -59,20 +59,14 @@ def layout_scipy_focus(S, f, weighted=False, t_max=15, mu_min=.1):
 
     # set relevant weights to effectively infinity for focus
     w_f = 1/min(eta)
-    ij = 0
-    for i in range(n):
-        for j in range(i,n):
-            if i==f or j==f:
-                w[ij] = w_f
-            ij += 1
-
-    # w_f = 1/min(eta)
-    # nC2_f = int((n*(n-1))/2 - ((n-f)*(n-f-1))/2) # squareform stuff
-    # for j in range(n):
-    #     if j != f:
-    #         fj = nC2_f + (j-f-1)
-    #         print(fj)
-    #         w[fj] = w_f
+    ij = f-1
+    for i in range(f):
+        w[ij] = w_f
+        ij += n-i-2
+    ij += 1
+    for i in range(f, n-1):
+        w[ij] = w_f
+        ij += 1
 
     # initialize positions
     X = np.random.rand(n, 2)
@@ -80,6 +74,25 @@ def layout_scipy_focus(S, f, weighted=False, t_max=15, mu_min=.1):
     # perform SGD
     layout.sgd_direct(X, d, w, eta)
     return X
+
+def concentric_circles(n_circ, radius=1, n_seg=100, offset=[0,0]):
+    """returns coordinates to plot concentric circles using pyplot.plt
+    where the first dimension is the circle, the second is x/y axis, third is coordinate
+    an optional offset may also be used"""
+
+    circles = np.empty(shape=(n_circ, 2, n_seg+1))
+    for circ in range(n_circ):
+        r = circ+1 * radius
+        for seg in range(n_seg):
+            angle = seg/n_seg * 2*np.pi
+            circles[circ,0,seg] = r * np.cos(angle) + offset[0]
+            circles[circ,1,seg] = r * np.sin(angle) + offset[1]
+
+        # join the end back to the start
+        circles[circ,0,n_seg] = circles[circ,0,0]
+        circles[circ,1,n_seg] = circles[circ,1,0]
+
+    return circles
 
 def layout_scipy_y_constrained(S, Y, weighted=False, t_max=15, mu_min=.1):
     """takes a scipy sparse matrix S with n vertices
