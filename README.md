@@ -9,10 +9,11 @@ $ pip install s_gd2
 ```
 and an example use case looks like
 ```python
-import s_gd2
 import networkx as nx
 G = nx.balanced_tree(2,9)
 S = nx.to_scipy_sparse_matrix(G)
+
+import s_gd2
 X = s_gd2.layout_scipy(S)
 nx.draw(G, pos=X, node_size=0)
 
