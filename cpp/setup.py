@@ -13,16 +13,16 @@ _layout = Extension(
     name="_layout",
     sources=["layout_wrap.cxx", "layout.cpp"],
     extra_compile_args=["-std=c++11"],
-    include_dirs=[numpy_include]
+    include_dirs=[numpy_include, "layout.hpp"]
 )
 
 setup(
     name="s_gd2",
-    version="0.14",
+    version="0.15",
     author="Jonathan Zheng",
     author_email="jxz12@ic.ac.uk",
     description="A package for performing stochastic gradient descent (arXiv:1710.04626) to layout graphs",
-    install_requires=['numpy', 'scipy'],
+    install_requires=['numpy'],
     setup_requires=['numpy'],
     py_modules=['s_gd2', 'layout'],
     ext_modules=[_layout]
