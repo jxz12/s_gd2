@@ -1,32 +1,67 @@
 import layout
 import numpy as np
 
-def test(X):
-    layout.test(X)
-
-def layout_unweighted(n, I, J, t_max=15, eps=.1):
+def draw(n, I, J, V=None, t_max=15, eps=.1):
     """takes a list of indices I and J
     and returns a n-by-2 matrix of positions X with minimized stress"""
 
     # initialize positions
     X = np.random.rand(n, 2)
     
-    layout.layout_unweighted(X, I, J, t_max, eps)
+    if V is None:
+        layout.layout_unweighted(X, I, J, t_max, eps)
+    else:
+        layout.layout_weighted(X, I, J, V, t_max, eps)
     return X
 
-def layout_weighted(n, I, J, V, t_max=15, eps=.1):
+def draw_convergent(n, I, J, V=None, t_max=30, eps=.1, delta=.03, t_maxmax=200):
     """takes a list of indices I and J
-    and returns a n-by-2 matrix of positions X with minimized stress"""
+    and returns a n-by-2 matrix of positions X with minimized stress
+    at a guaranteed stationary point."""
 
     # initialize positions
     X = np.random.rand(n, 2)
 
-    layout.layout_weighted(X, I, J, V, t_max, eps)
+    if V is None:
+        layout.layout_unweighted_convergent(X, I, J, t_max, eps, delta, t_maxmax)
+    else:
+        layout.layout_weighted_convergent(X, I, J, V, t_max, eps, delta, t_maxmax)
+
+    return X
+
+def draw_focus(n, I, J, focus, V=None, t_max=30, eps=.1, delta=.03, t_maxmax=200):
+    """takes a list of indices I and J with single index f
+    and returns a n-by-2 matrix of positions X with a focus on node f
+    at a guaranteed stationary point."""
+
+    # initialize positions
+    X = np.random.rand(n, 2)
+
+    if V is None:
+        layout.layout_unweighted_focus(X, I, J, focus, t_max, eps, delta, t_maxmax)
+    else:
+        layout.layout_weighted_focus(X, I, J, focus, V, t_max, eps, delta, t_maxmax)
+
+    return X
+
+def draw_horizontal(n, I, J, Y, V=None, t_max=30, eps=.1, delta=.03, t_maxmax=200):
+    """takes a list of indices I and J with vertical positions y
+    and returns a n-by-2 matrix of positions X with a focus on node f
+    at a guaranteed stationary point."""
+
+    # initialize positions
+    X = np.random.rand(n, 2)
+    X[:,1] = Y
+
+    if V is None:
+        layout.layout_unweighted_horizontal(X, I, J, t_max, eps, delta, t_maxmax)
+    else:
+        layout.layout_weighted_horizontal(X, I, J, V, t_max, eps, delta, t_maxmax)
     return X
 
 def mds_direct(n, d, w, eta):
-    """takes nC2 vectors d and w, and a vector of step sizes eta
-    and returns a n-by-2 matrix of positions X with minimized stress"""
+    """takes nC2 vectors d and w with a vector of step sizes eta
+    and returns a n-by-2 matrix of positions X"""
 
     # initialize positions
     X = np.random.rand(n, 2)
@@ -35,62 +70,10 @@ def mds_direct(n, d, w, eta):
     return X
 
 
-# def layout_scipy_focus(S, f, weighted=False, t_max=20, eps=.01):
-#     """takes a scipy sparse matrix S with n vertices
-#     and returns a n-by-2 matrix of positions X with minimized stress
-#     and a focus on vertex f
-#     usually requires larger t_max and lower eps to guarantee a tidy layout"""
-# 
-#     n,_ = S.shape
-#     if f < 0 or f >= n:
-#         raise Exception("focus has index not within bounds")
-# 
-#     d, w = init_dw(S, weighted)
-#     eta = init_eta(w, t_max, eps)
-# 
-#     # set relevant weights in distance vector to effectively infinity for focus
-#     w_f = 1/min(eta)/min(w)
-#     
-#     ij = f-1
-#     for i in range(f):
-#         w[ij] = w_f
-#         ij += n-i-2
-#     ij += 1
-#     for i in range(f, n-1):
-#         w[ij] = w_f
-#         ij += 1
-# 
-#     # initialize positions
-#     X = np.random.rand(n, 2)
-# 
-#     # perform SGD
-#     layout.sgd_direct(X, d, w, eta)
-#     return X
-
-# def layout_scipy_y_constrained(S, Y, weighted=False, t_max=15, eps=.1):
-#     """takes a scipy sparse matrix S with n vertices
-#     and returns a n-by-2 matrix of positions X with minimized stress
-#     with y-axis positions constrained to the values in Y"""
-# 
-#     n,_ = S.shape
-#     d, w = init_dw(S, weighted)
-#     eta = init_eta(w, t_max, eps)
-# 
-#     # initialize positions
-#     X = np.random.rand(n, 2)
-# 
-#     # constrain y axis positions
-#     for i in range(n):
-#         X[i,1] = Y[i];
-# 
-#     # perform SGD only on x-axis
-#     layout.sgd_direct_horizontal(X, d, w, eta)
-#     return X
-
-def concentric_circles(n_circ, radius=1, n_seg=100, offset=[0,0]):
-    """returns coordinates to plot concentric circles using pyplot.plot in a numpy matrix
+def concentric_circles(n_circ, offset=[0,0], radius=1, n_seg=100):
+    """Returns coordinates to plot concentric circles using pyplot.plot in a numpy matrix
     where the first dimension is which circle, the second is x/y axis, third is the coordinates
-    an optional offset may also be used"""
+    an optional offset may also be used. Useful for layout_focus()."""
 
     circles = np.empty(shape=(n_circ, 2, n_seg+1))
     for circ in range(n_circ):

@@ -96,6 +96,18 @@ except __builtin__.Exception:
     _newclass = 0
 
 
+def dimension_check(kd):
+    return _layout.dimension_check(kd)
+dimension_check = _layout.dimension_check
+
+def unweighted_edge_check(len_I, len_J):
+    return _layout.unweighted_edge_check(len_I, len_J)
+unweighted_edge_check = _layout.unweighted_edge_check
+
+def weighted_edge_check(len_I, len_J, len_V):
+    return _layout.weighted_edge_check(len_I, len_J, len_V)
+weighted_edge_check = _layout.weighted_edge_check
+
 def layout_unweighted(*args):
     return _layout.layout_unweighted(*args)
 layout_unweighted = _layout.layout_unweighted
@@ -103,6 +115,30 @@ layout_unweighted = _layout.layout_unweighted
 def layout_weighted(*args):
     return _layout.layout_weighted(*args)
 layout_weighted = _layout.layout_weighted
+
+def layout_unweighted_convergent(*args):
+    return _layout.layout_unweighted_convergent(*args)
+layout_unweighted_convergent = _layout.layout_unweighted_convergent
+
+def layout_weighted_convergent(*args):
+    return _layout.layout_weighted_convergent(*args)
+layout_weighted_convergent = _layout.layout_weighted_convergent
+
+def layout_unweighted_focus(*args):
+    return _layout.layout_unweighted_focus(*args)
+layout_unweighted_focus = _layout.layout_unweighted_focus
+
+def layout_weighted_focus(*args):
+    return _layout.layout_weighted_focus(*args)
+layout_weighted_focus = _layout.layout_weighted_focus
+
+def layout_unweighted_horizontal(*args):
+    return _layout.layout_unweighted_horizontal(*args)
+layout_unweighted_horizontal = _layout.layout_unweighted_horizontal
+
+def layout_weighted_horizontal(*args):
+    return _layout.layout_weighted_horizontal(*args)
+layout_weighted_horizontal = _layout.layout_weighted_horizontal
 
 def mds_direct(*args):
     return _layout.mds_direct(*args)

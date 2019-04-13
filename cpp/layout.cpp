@@ -2,7 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <queue>
-#include <iostream>
+#include <limits>
 
 struct term
 {
@@ -20,15 +20,18 @@ std::vector<term*> dijkstra(int n, int m, int* I, int* J, double* V);
 std::vector<double> schedule(const std::vector<term*> &terms, int t_max, double eps);
 std::vector<double> schedule_convergent(const std::vector<term*> &terms, int t_max, double eps, int t_maxmax);
 
-void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, double eps, bool horizontal);
-void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, bool horizontal);
-void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps1, double delta, int t_maxmax, bool horizontal);
-void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax, bool horizontal);
+void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, double eps);
+void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps);
+void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax);
+void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax);
+
+// focus and horizontal are always convergent
+void layout_unweighted_focus(int n, double* X, int m, int* I, int* J, int f, int t_max, double eps, double delta, int t_maxmax);
+void layout_weighted_focus(int n, double* X, int m, int* I, int* J, int f, double* V, int t_max, double eps, double delta, int t_maxmax);
+void layout_unweighted_horizontal(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax);
+void layout_weighted_horizontal(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax);
 
 void mds_direct(int n, double* X, double* d, double* w, int t_max, double* etas, bool horizontal);
-
-
-
 
 
 
@@ -196,6 +199,9 @@ std::vector<term*> dijkstra(int n, int m, int* I, int* J, double* V)
             throw "i or j bigger than n";
 
         double v = V[ij];
+        if (v <= 0)
+            throw "v less than 0";
+
         graph[i].push_back(edge(j, v));
     }
 
@@ -208,7 +214,7 @@ std::vector<term*> dijkstra(int n, int m, int* I, int* J, double* V)
     for (int source=0; source<n-1; source++) // no need to do final vertex because i<j
     {
         std::vector<bool> visited(n, false);
-        std::vector<double> d(n, n); // distances from source, n is effectively infinity
+        std::vector<double> d(n, std::numeric_limits<double>::max()); // init 'tentative' distances to infinity
 
         // I am not using a fibonacci heap. I AM NOT USING A FIBONACCI HEAP
         // edges are used 'invisibly' here
@@ -316,50 +322,86 @@ std::vector<double> schedule_convergent(const std::vector<term*> &terms, int t_m
     for (int t=tau; t<t_maxmax; t++)
     {
         double eta = eta_switch / (1 + lambda*(t-tau));
+        etas.push_back(eta);
     }
 
     return etas;
 }
+void focus_terms(std::vector<term*> &terms, const std::vector<double> &etas, int focus_idx)
+{
+    double min_eta = etas[0];
+    for (int i=1; i<etas.size(); i++)
+    {
+        if (etas[i] < min_eta)
+            min_eta = etas[i];
+    }
+    double min_w = terms[0]->w;
+    for (int i=1; i<terms.size(); i++)
+    {
+        if (terms[i]->w < min_w)
+            min_w = terms[i]->w;
+    }
 
-void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, double eps, bool horizontal)
+    // this is necessary because we do not know the behaviour of c++ infinity*infinity
+    double my_infinity = 1.0 / min_eta / min_w;
+
+    for (term* t: terms)
+    {
+        if (t->i == focus_idx || t->j == focus_idx)
+            t->w = my_infinity;
+    }
+}
+
+void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, double eps)
 {
     std::vector<term*> terms = bfs(n, m, I, J);
     std::vector<double> etas = schedule(terms, t_max, eps);
-
-    if (!horizontal)
-        sgd(X, terms, etas, 0);
-    else
-        sgd_horizontal(X, terms, etas, 0);
+    sgd(X, terms, etas, 0);
 }
-void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, bool horizontal)
+void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps)
 {
     std::vector<term*> terms = dijkstra(n, m, I, J, V);
     std::vector<double> etas = schedule(terms, t_max, eps);
-
-    if (!horizontal)
-        sgd(X, terms, etas, 0);
-    else
-        sgd_horizontal(X, terms, etas, 0);
+    sgd(X, terms, etas, 0);
 }
-void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax, bool horizontal)
+void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax)
 {
     std::vector<term*> terms = bfs(n, m, I, J);
     std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
-
-    if (!horizontal)
-        sgd(X, terms, etas, delta);
-    else
-        sgd_horizontal(X, terms, etas, delta);
+    sgd(X, terms, etas, 0);
 }
-void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax, bool horizontal)
+void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax)
 {
     std::vector<term*> terms = dijkstra(n, m, I, J, V);
-    std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax); // default t_maxmax=200
-
-    if (!horizontal)
-        sgd(X, terms, etas, delta);
-    else
-        sgd_horizontal(X, terms, etas, delta);
+    std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
+    sgd(X, terms, etas, 0);
+}
+/// focus and horizontal are always convergent
+void layout_unweighted_focus(int n, double* X, int m, int* I, int* J, int f, int t_max, double eps, double delta, int t_maxmax)
+{
+    std::vector<term*> terms = bfs(n, m, I, J);
+    std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
+    focus_terms(terms, etas, f);
+    sgd(X, terms, etas, 0);
+}
+void layout_weighted_focus(int n, double* X, int m, int* I, int* J, int f, double* V, int t_max, double eps, double delta, int t_maxmax)
+{
+    std::vector<term*> terms = dijkstra(n, m, I, J, V);
+    std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
+    focus_terms(terms, etas, f);
+    sgd(X, terms, etas, 0);
+}
+void layout_unweighted_horizontal(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax)
+{
+    std::vector<term*> terms = bfs(n, m, I, J);
+    std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
+    sgd_horizontal(X, terms, etas, 0);
+}
+void layout_weighted_horizontal(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax)
+{
+    std::vector<term*> terms = dijkstra(n, m, I, J, V);
+    std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
+    sgd_horizontal(X, terms, etas, 0);
 }
 
 
