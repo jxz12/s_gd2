@@ -13,7 +13,7 @@ _layout = Extension(
     name="_layout",
     sources=["layout_wrap.cxx", "layout.cpp"],
     extra_compile_args=["-std=c++11"],
-    include_dirs=[numpy_include, "layout.hpp"]
+    include_dirs=[numpy_include]
 )
 
 setup(

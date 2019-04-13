@@ -96,13 +96,17 @@ except __builtin__.Exception:
     _newclass = 0
 
 
-def sgd_direct(*args):
-    return _layout.sgd_direct(*args)
-sgd_direct = _layout.sgd_direct
+def layout_unweighted(*args):
+    return _layout.layout_unweighted(*args)
+layout_unweighted = _layout.layout_unweighted
 
-def sgd_direct_horizontal(*args):
-    return _layout.sgd_direct_horizontal(*args)
-sgd_direct_horizontal = _layout.sgd_direct_horizontal
+def layout_weighted(*args):
+    return _layout.layout_weighted(*args)
+layout_weighted = _layout.layout_weighted
+
+def mds_direct(*args):
+    return _layout.mds_direct(*args)
+mds_direct = _layout.mds_direct
 # This file is compatible with both classic and new-style classes.
 
 

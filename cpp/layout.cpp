@@ -1,11 +1,38 @@
-#include "layout.hpp"
-
 #include <cmath>
+#include <vector>
 #include <algorithm>
 #include <queue>
-#include <vector>
+#include <iostream>
 
-void sgd(double* X, std::vector<term*> &terms, std::vector<double> &etas, double delta)
+struct term
+{
+	int i, j;
+	double d, w;
+	term(int i, int j, double d, double w) : i(i), j(j), d(d), w(w) {}
+};
+
+void sgd(double* X, std::vector<term*> &terms, const std::vector<double> &etas, double delta);
+void sgd_horizontal(double* X, std::vector<term*> &terms, const std::vector<double> &etas, double delta); // only changes x coords
+
+std::vector<term*> bfs(int n, int m, int* I, int* J);
+std::vector<term*> dijkstra(int n, int m, int* I, int* J, double* V);
+
+std::vector<double> schedule(const std::vector<term*> &terms, int t_max, double eps);
+std::vector<double> schedule_convergent(const std::vector<term*> &terms, int t_max, double eps, int t_maxmax);
+
+void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, double eps, bool horizontal);
+void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, bool horizontal);
+void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps1, double delta, int t_maxmax, bool horizontal);
+void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax, bool horizontal);
+
+void mds_direct(int n, double* X, double* d, double* w, int t_max, double* etas, bool horizontal);
+
+
+
+
+
+
+void sgd(double* X, std::vector<term*> &terms, const std::vector<double> &etas, double delta)
 {
 	// iterate through step sizes
 	for (double eta : etas)
@@ -44,7 +71,7 @@ void sgd(double* X, std::vector<term*> &terms, std::vector<double> &etas, double
 	}
 }
 
-void sgd_horizontal(double* X, std::vector<term*> &terms, std::vector<double> &etas, double delta)
+void sgd_horizontal(double* X, std::vector<term*> &terms, const std::vector<double> &etas, double delta)
 {
 	// iterate through step sizes
 	for (double eta : etas)
@@ -142,46 +169,22 @@ std::vector<term*> bfs(int n, int m, int* I, int* J)
     return terms;
 }
 
-
-std::vector<double> schedule(std::vector<term*> &terms, double t_max, double eps)
-{
-    double w_min = terms[0]->w, w_max = terms[0]->w;
-    for (int i=1; i<terms.size(); i++)
-    {
-        double w = terms[i]->w;
-        if (w < w_min)
-            w_min = w;
-
-        if (w > w_max)
-            w_max = w;
-    }
-    double eta_max = 1.0 / w_min;
-    double eta_min = eps / w_max;
-
-    double lambda = log(eta_max/eta_min) / (t_max-1);
-
-    // initialize step sizes
-    std::vector<double> etas;
-    etas.reserve(t_max);
-    for (int t=0; t<t_max; t++)
-        etas.push_back(eta_max * exp(-lambda * t));
-
-    return etas;
-}
-
-void sgd_unweighted(int n, double* X, int m, int* I, int* J, int t_max, double eps, bool horizontal)
-{
-    std::vector<term*> terms = bfs(n, m, I, J);
-    std::vector<double> etas = schedule(terms, t_max, eps);
-
-    if (!horizontal)
-        sgd(X, terms, etas, 0);
-    else
-        sgd_horizontal(X, terms, etas, 0);
-}
-
 // calculates the unweighted shortest paths between indices I and J
 // using dijkstra's algorithm, returning a vector of term*s
+struct edge
+{
+    // NOTE: this will be used for 'invisible' edges too!
+    int target;
+    double weight;
+    edge(int target, double weight) : target(target), weight(weight) {}
+};
+struct edge_comp
+{
+    bool operator() (const edge &lhs, const edge &rhs) const
+    {
+        return lhs.weight > rhs.weight;
+    }
+};
 
 std::vector<term*> dijkstra(int n, int m, int* I, int* J, double* V)
 {
@@ -253,8 +256,115 @@ std::vector<term*> dijkstra(int n, int m, int* I, int* J, double* V)
     return terms;
 }
 
+
+std::vector<double> schedule(const std::vector<term*> &terms, int t_max, double eps)
+{
+    double w_min = terms[0]->w, w_max = terms[0]->w;
+    for (int i=1; i<terms.size(); i++)
+    {
+        double w = terms[i]->w;
+        if (w < w_min)
+            w_min = w;
+
+        if (w > w_max)
+            w_max = w;
+    }
+    double eta_max = 1.0 / w_min;
+    double eta_min = eps / w_max;
+
+    double lambda = log(eta_max/eta_min) / (t_max-1);
+
+    // initialize step sizes
+    std::vector<double> etas;
+    etas.reserve(t_max);
+    for (int t=0; t<t_max; t++)
+        etas.push_back(eta_max * exp(-lambda * t));
+
+    return etas;
+}
+
+std::vector<double> schedule_convergent(const std::vector<term*> &terms, int t_max, double eps, int t_maxmax)
+{
+    double w_min = terms[0]->w, w_max = terms[0]->w;
+    for (int i=1; i<terms.size(); i++)
+    {
+        double w = terms[i]->w;
+        if (w < w_min)
+            w_min = w;
+
+        if (w > w_max)
+            w_max = w;
+    }
+    double eta_max = 1.0 / w_min;
+    double eta_min = eps / w_max;
+
+    double lambda = log(eta_max/eta_min) / (t_max-1);
+
+    // initialize step sizes
+    std::vector<double> etas;
+    etas.reserve(t_maxmax);
+    double eta_switch = 1.0 / w_max;
+    for (int t=0; t<t_maxmax; t++)
+    {
+        double eta = eta_max * exp(-lambda * t);
+        if (eta < eta_switch)
+            break;
+
+        etas.push_back(eta);
+    }
+    int tau = etas.size();
+    for (int t=tau; t<t_maxmax; t++)
+    {
+        double eta = eta_switch / (1 + lambda*(t-tau));
+    }
+
+    return etas;
+}
+
+void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, double eps, bool horizontal)
+{
+    std::vector<term*> terms = bfs(n, m, I, J);
+    std::vector<double> etas = schedule(terms, t_max, eps);
+
+    if (!horizontal)
+        sgd(X, terms, etas, 0);
+    else
+        sgd_horizontal(X, terms, etas, 0);
+}
+void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, bool horizontal)
+{
+    std::vector<term*> terms = dijkstra(n, m, I, J, V);
+    std::vector<double> etas = schedule(terms, t_max, eps);
+
+    if (!horizontal)
+        sgd(X, terms, etas, 0);
+    else
+        sgd_horizontal(X, terms, etas, 0);
+}
+void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax, bool horizontal)
+{
+    std::vector<term*> terms = bfs(n, m, I, J);
+    std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
+
+    if (!horizontal)
+        sgd(X, terms, etas, delta);
+    else
+        sgd_horizontal(X, terms, etas, delta);
+}
+void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax, bool horizontal)
+{
+    std::vector<term*> terms = dijkstra(n, m, I, J, V);
+    std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax); // default t_maxmax=200
+
+    if (!horizontal)
+        sgd(X, terms, etas, delta);
+    else
+        sgd_horizontal(X, terms, etas, delta);
+}
+
+
 // d and w should be condensed distance matrices
-void sgd_direct(int n, double* X, double* d, double* w, int t_max, double* eta, bool horizontal)
+void mds_direct(int n, double* X, double* d, double* w, int t_max, double* eta, bool horizontal)
 {
 	// initialize SGD
 	int nC2 = (n*(n-1))/2;
