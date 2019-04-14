@@ -2,7 +2,12 @@
 #include <vector>
 #include <algorithm>
 #include <queue>
+#include <unordered_set>
+#include <unordered_map>
 #include <limits>
+
+#include <chrono>
+#include <iostream>
 
 struct term
 {
@@ -11,14 +16,15 @@ struct term
 	term(int i, int j, double d, double w) : i(i), j(j), d(d), w(w) {}
 };
 
-void sgd(double* X, std::vector<term*> &terms, const std::vector<double> &etas, double delta);
-void sgd_horizontal(double* X, std::vector<term*> &terms, const std::vector<double> &etas, double delta); // only changes x coords
+void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas);
+void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas, double delta);
+void sgd_horizontal(double* X, std::vector<term> &terms, const std::vector<double> &etas, double delta); // only changes x coords
 
-std::vector<term*> bfs(int n, int m, int* I, int* J);
-std::vector<term*> dijkstra(int n, int m, int* I, int* J, double* V);
+std::vector<term> bfs(int n, int m, int* I, int* J);
+std::vector<term> dijkstra(int n, int m, int* I, int* J, double* V);
 
-std::vector<double> schedule(const std::vector<term*> &terms, int t_max, double eps);
-std::vector<double> schedule_convergent(const std::vector<term*> &terms, int t_max, double eps, int t_maxmax);
+std::vector<double> schedule(const std::vector<term> &terms, int t_max, double eps);
+std::vector<double> schedule_convergent(const std::vector<term> &terms, int t_max, double eps, int t_maxmax);
 
 void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, double eps);
 void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps);
@@ -34,8 +40,7 @@ void layout_weighted_horizontal(int n, double* X, int m, int* I, int* J, double*
 void mds_direct(int n, double* X, double* d, double* w, int t_max, double* etas, bool horizontal);
 
 
-
-void sgd(double* X, std::vector<term*> &terms, const std::vector<double> &etas, double delta)
+void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas)
 {
 	// iterate through step sizes
 	for (double eta : etas)
@@ -43,38 +48,78 @@ void sgd(double* X, std::vector<term*> &terms, const std::vector<double> &etas, 
         // shuffle terms
         std::random_shuffle(terms.begin(), terms.end());
 
-        double mag_max = 0;
-		for (term* ijdw : terms)
+		for (term t : terms)
 		{
 			// cap step size
-            double w_ij = ijdw->w;
+            double w_ij = t.w;
 			double mu = eta * w_ij;
 			if (mu > 1)
 				mu = 1;
 
-			double d_ij = ijdw->d;
+			double d_ij = t.d;
+			int i = t.i, j = t.j;
 
-			int i = ijdw->i, j = ijdw->j;
-			double del_x = X[i*2] - X[j*2], del_y = X[i*2+1] - X[j*2+1];
-			double mag = sqrt(del_x*del_x + del_y*del_y);
-            if (mag > mag_max)
-                mag_max = mag;
-			
-			double r = mu * (mag - d_ij) / (2 * mag);
-			double r_x = r * del_x;
-			double r_y = r * del_y;
+			double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
+			double mag = sqrt(dx*dx + dy*dy);
+
+			double r = mu * (mag-d_ij) / (2*mag);
+			double r_x = r * dx;
+			double r_y = r * dy;
 			
 			X[i*2] -= r_x;
 			X[i*2+1] -= r_y;
 			X[j*2] += r_x;
 			X[j*2+1] += r_y;
 		}
-        if (mag_max < delta)
+	}
+}
+
+
+void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas, double delta)
+{
+	// iterate through step sizes
+    int i=0;
+	for (double eta : etas)
+	{
+        // shuffle terms
+        std::random_shuffle(terms.begin(), terms.end());
+
+        double Delta_max = 0;
+		for (term t : terms)
+		{
+			// cap step size
+            double w_ij = t.w;
+			double mu = eta * w_ij;
+			if (mu > 1)
+				mu = 1;
+
+			double d_ij = t.d;
+			int i = t.i, j = t.j;
+
+			double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
+			double mag = sqrt(dx*dx + dy*dy);
+
+            double Delta = mu * (mag-d_ij) / 2;
+            if (Delta > Delta_max)
+                Delta_max = Delta;
+
+			double r = Delta / mag;
+			//double r = mu * (mag-d_ij) / (2*mag);
+			double r_x = r * dx;
+			double r_y = r * dy;
+			
+			X[i*2] -= r_x;
+			X[i*2+1] -= r_y;
+			X[j*2] += r_x;
+			X[j*2+1] += r_y;
+		}
+        std::cout << ++i << " " << eta << " " << Delta_max << std::endl;
+        if (Delta_max < delta)
             return;
 	}
 }
 
-void sgd_horizontal(double* X, std::vector<term*> &terms, const std::vector<double> &etas, double delta)
+void sgd_horizontal(double* X, std::vector<term> &terms, const std::vector<double> &etas, double delta)
 {
 	// iterate through step sizes
 	for (double eta : etas)
@@ -82,54 +127,70 @@ void sgd_horizontal(double* X, std::vector<term*> &terms, const std::vector<doub
         // shuffle terms
         std::random_shuffle(terms.begin(), terms.end());
 
-        double mag_max = 0;
-		for (term* ijdw : terms)
+        double Delta_max = 0;
+		for (term t : terms)
 		{
 			// cap step size
-            double w_ij = ijdw->w;
+            double w_ij = t.w;
 			double mu = eta * w_ij;
 			if (mu > 1)
 				mu = 1;
 
-			double d_ij = ijdw->d;
+			double d_ij = t.d;
+			int i = t.i, j = t.j;
 
-			int i = ijdw->i, j = ijdw->j;
-			double del_x = X[i*2] - X[j*2], del_y = X[i*2+1] - X[j*2+1];
-			double mag = sqrt(del_x*del_x + del_y*del_y);
-            if (mag > mag_max)
-                mag_max = mag;
-			
-			double r = mu * (mag - d_ij) / (2 * mag);
-			double r_x = r * del_x;
-			//double r_y = r * del_y;
+			double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
+			double mag = sqrt(dx*dx + dy*dy);
+
+            double Delta = mu * (mag-d_ij) / 2.0;
+            if (Delta > Delta_max)
+                Delta_max = Delta;
+
+			double r = Delta / mag;
+			double r_x = r * dx;
+			//double r_y = r * dy;
 			
 			X[i*2] -= r_x;
 			//X[i*2+1] -= r_y;
 			X[j*2] += r_x;
 			//X[j*2+1] += r_y;
-            // do not change y coord positions, but still take them into account
 		}
-        if (mag_max < delta)
+        if (Delta_max < delta)
             return;
 	}
 }
 
-// calculates the unweighted shortest paths between indices I and J
-// using a breadth-first search, returning a vector of term*s
-std::vector<term*> bfs(int n, int m, int* I, int* J)
+std::vector<std::vector<int>> build_graph_unweighted(int n, int m, int* I, int* J)
 {
+    // used to make graph undirected, in case it is not already
+    std::vector<std::unordered_set<int>> undirected(n);
     std::vector<std::vector<int>> graph(n);
+
     for (int ij=0; ij<m; ij++)
     {
         int i = I[ij], j = J[ij];
         if (i >= n || j >= n)
             throw "i or j bigger than n";
 
-        graph[i].push_back(j);
+        if (undirected[j].find(i) == undirected[j].end()) // if edge not seen
+        {
+            undirected[i].insert(j);
+            undirected[j].insert(i);
+            graph[i].push_back(j);
+            graph[j].push_back(i);
+        }
     }
+    return graph;
+}
+
+// calculates the unweighted shortest paths between indices I and J
+// using a breadth-first search, returning a vector of terms
+std::vector<term> bfs(int n, int m, int* I, int* J)
+{
+    auto graph = build_graph_unweighted(n, m, I, J);
 
 	int nC2 = (n*(n-1))/2;
-	std::vector<term*> terms;
+	std::vector<term> terms;
 	terms.reserve(nC2);
 
     int terms_size_goal = 0; // to keep track of when to stop searching i<j
@@ -159,7 +220,7 @@ std::vector<term*> bfs(int n, int m, int* I, int* J)
                     if (source < next) // only add terms for i<j
                     {
                         double w_ij = 1.0 / (d_ij*d_ij);
-                        terms.push_back(new term(source, next, d_ij, w_ij));
+                        terms.push_back(term(source, next, d_ij, w_ij));
                     }
                 }
             }
@@ -173,7 +234,7 @@ std::vector<term*> bfs(int n, int m, int* I, int* J)
 }
 
 // calculates the unweighted shortest paths between indices I and J
-// using dijkstra's algorithm, returning a vector of term*s
+// using dijkstra's algorithm, returning a vector of terms
 struct edge
 {
     // NOTE: this will be used for 'invisible' edges too!
@@ -189,9 +250,12 @@ struct edge_comp
     }
 };
 
-std::vector<term*> dijkstra(int n, int m, int* I, int* J, double* V)
+std::vector<std::vector<edge>> build_graph_weighted(int n, int m, int* I, int* J, double* V)
 {
+    // used to make graph undirected, in case graph is not already
+    std::vector<std::unordered_map<int, double>> undirected(n);
     std::vector<std::vector<edge>> graph(n);
+
     for (int ij=0; ij<m; ij++)
     {
         int i = I[ij], j = J[ij];
@@ -200,13 +264,30 @@ std::vector<term*> dijkstra(int n, int m, int* I, int* J, double* V)
 
         double v = V[ij];
         if (v <= 0)
-            throw "v less than 0";
+            throw "v less or equal 0";
 
-        graph[i].push_back(edge(j, v));
+        if (undirected[j].find(i) == undirected[j].end()) // if key not there
+        {
+            undirected[i].insert({j, v});
+            undirected[j].insert({i, v});
+            graph[i].push_back(edge(j, v));
+            graph[j].push_back(edge(i, v));
+        }
+        else
+        {
+            if (undirected[j][i] != v)
+                throw "graph weights not symmetric";
+        }
     }
+    return graph;
+}
+
+std::vector<term> dijkstra(int n, int m, int* I, int* J, double* V)
+{
+    auto graph = build_graph_weighted(n, m, I, J, V);
 
 	int nC2 = (n*(n-1))/2;
-	std::vector<term*> terms;
+	std::vector<term> terms;
 	terms.reserve(nC2);
 
     int terms_size_goal = 0; // to keep track of when to stop searching i<j
@@ -238,7 +319,7 @@ std::vector<term*> dijkstra(int n, int m, int* I, int* J, double* V)
                 if (source < current) // only add terms for i<j
                 {
                     double w_ij = 1.0 / (d_ij*d_ij);
-                    terms.push_back(new term(source, current, d_ij, w_ij));
+                    terms.push_back(term(source, current, d_ij, w_ij));
                 }
                 for (edge e : graph[current])
                 {
@@ -263,12 +344,12 @@ std::vector<term*> dijkstra(int n, int m, int* I, int* J, double* V)
 }
 
 
-std::vector<double> schedule(const std::vector<term*> &terms, int t_max, double eps)
+std::vector<double> schedule(const std::vector<term> &terms, int t_max, double eps)
 {
-    double w_min = terms[0]->w, w_max = terms[0]->w;
+    double w_min = terms[0].w, w_max = terms[0].w;
     for (int i=1; i<terms.size(); i++)
     {
-        double w = terms[i]->w;
+        double w = terms[i].w;
         if (w < w_min)
             w_min = w;
 
@@ -289,12 +370,12 @@ std::vector<double> schedule(const std::vector<term*> &terms, int t_max, double 
     return etas;
 }
 
-std::vector<double> schedule_convergent(const std::vector<term*> &terms, int t_max, double eps, int t_maxmax)
+std::vector<double> schedule_convergent(const std::vector<term> &terms, int t_max, double eps, int t_maxmax)
 {
-    double w_min = terms[0]->w, w_max = terms[0]->w;
+    double w_min = terms[0].w, w_max = terms[0].w;
     for (int i=1; i<terms.size(); i++)
     {
-        double w = terms[i]->w;
+        double w = terms[i].w;
         if (w < w_min)
             w_min = w;
 
@@ -327,7 +408,7 @@ std::vector<double> schedule_convergent(const std::vector<term*> &terms, int t_m
 
     return etas;
 }
-void focus_terms(std::vector<term*> &terms, const std::vector<double> &etas, int focus_idx)
+void focus_terms(std::vector<term> &terms, const std::vector<double> &etas, int focus_idx)
 {
     double min_eta = etas[0];
     for (int i=1; i<etas.size(); i++)
@@ -335,73 +416,82 @@ void focus_terms(std::vector<term*> &terms, const std::vector<double> &etas, int
         if (etas[i] < min_eta)
             min_eta = etas[i];
     }
-    double min_w = terms[0]->w;
+    double min_w = terms[0].w;
     for (int i=1; i<terms.size(); i++)
     {
-        if (terms[i]->w < min_w)
-            min_w = terms[i]->w;
+        if (terms[i].w < min_w)
+            min_w = terms[i].w;
     }
 
     // this is necessary because we do not know the behaviour of c++ infinity*infinity
     double my_infinity = 1.0 / min_eta / min_w;
 
-    for (term* t: terms)
+    for (term t: terms)
     {
-        if (t->i == focus_idx || t->j == focus_idx)
-            t->w = my_infinity;
+        if (t.i == focus_idx || t.j == focus_idx)
+            t.w = my_infinity;
     }
 }
 
 void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, double eps)
 {
-    std::vector<term*> terms = bfs(n, m, I, J);
+    auto start = std::chrono::steady_clock::now();
+
+    std::vector<term> terms = bfs(n, m, I, J);
+
+    auto end = std::chrono::steady_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() << "ms" << std::endl;
+
     std::vector<double> etas = schedule(terms, t_max, eps);
-    sgd(X, terms, etas, 0);
+    sgd(X, terms, etas);
+
+    end = std::chrono::steady_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() << "ms" << std::endl;
 }
 void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps)
 {
-    std::vector<term*> terms = dijkstra(n, m, I, J, V);
+    std::vector<term> terms = dijkstra(n, m, I, J, V);
     std::vector<double> etas = schedule(terms, t_max, eps);
-    sgd(X, terms, etas, 0);
+    sgd(X, terms, etas);
 }
 void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax)
 {
-    std::vector<term*> terms = bfs(n, m, I, J);
+    std::vector<term> terms = bfs(n, m, I, J);
     std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
-    sgd(X, terms, etas, 0);
+    sgd(X, terms, etas, delta);
 }
 void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax)
 {
-    std::vector<term*> terms = dijkstra(n, m, I, J, V);
+    std::vector<term> terms = dijkstra(n, m, I, J, V);
     std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
-    sgd(X, terms, etas, 0);
+    sgd(X, terms, etas, delta);
 }
 /// focus and horizontal are always convergent
 void layout_unweighted_focus(int n, double* X, int m, int* I, int* J, int f, int t_max, double eps, double delta, int t_maxmax)
 {
-    std::vector<term*> terms = bfs(n, m, I, J);
+    std::vector<term> terms = bfs(n, m, I, J);
     std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
     focus_terms(terms, etas, f);
-    sgd(X, terms, etas, 0);
+    sgd(X, terms, etas, delta);
 }
 void layout_weighted_focus(int n, double* X, int m, int* I, int* J, int f, double* V, int t_max, double eps, double delta, int t_maxmax)
 {
-    std::vector<term*> terms = dijkstra(n, m, I, J, V);
+    std::vector<term> terms = dijkstra(n, m, I, J, V);
     std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
     focus_terms(terms, etas, f);
-    sgd(X, terms, etas, 0);
+    sgd(X, terms, etas, delta);
 }
 void layout_unweighted_horizontal(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax)
 {
-    std::vector<term*> terms = bfs(n, m, I, J);
+    std::vector<term> terms = bfs(n, m, I, J);
     std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
-    sgd_horizontal(X, terms, etas, 0);
+    sgd_horizontal(X, terms, etas, delta);
 }
 void layout_weighted_horizontal(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax)
 {
-    std::vector<term*> terms = dijkstra(n, m, I, J, V);
+    std::vector<term> terms = dijkstra(n, m, I, J, V);
     std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
-    sgd_horizontal(X, terms, etas, 0);
+    sgd_horizontal(X, terms, etas, delta);
 }
 
 
@@ -410,14 +500,14 @@ void mds_direct(int n, double* X, double* d, double* w, int t_max, double* eta, 
 {
 	// initialize SGD
 	int nC2 = (n*(n-1))/2;
-	std::vector<term*> terms;
+	std::vector<term> terms;
 	terms.reserve(nC2);
     int ij=0;
 	for (int i=0; i<n; i++) // unpack the condensed distance matrices
 	{
 		for (int j=i+1; j<n; j++)
 		{
-			terms.push_back(new term(i, j, d[ij], w[ij]));
+			terms.push_back(term(i, j, d[ij], w[ij]));
             ij += 1;
 		}
 	}
