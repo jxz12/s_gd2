@@ -49,7 +49,7 @@ void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas)
         // shuffle terms
         std::random_shuffle(terms.begin(), terms.end());
 
-		for (term t : terms)
+		for (const term &t : terms)
 		{
 			// cap step size
             double w_ij = t.w;
@@ -87,7 +87,7 @@ void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas, d
         std::random_shuffle(terms.begin(), terms.end());
 
         double Delta_max = 0;
-		for (term t : terms)
+		for (const term &t : terms)
 		{
 			// cap step size
             double w_ij = t.w;
@@ -130,7 +130,7 @@ void sgd_horizontal(double* X, std::vector<term> &terms, const std::vector<doubl
         std::random_shuffle(terms.begin(), terms.end());
 
         double Delta_max = 0;
-		for (term t : terms)
+		for (const term &t : terms)
 		{
 			// cap step size
             double w_ij = t.w;
@@ -429,10 +429,12 @@ void focus_terms(std::vector<term> &terms, const std::vector<double> &etas, int 
     // this is necessary because we do not know the behaviour of c++ infinity*infinity
     double my_infinity = 1.0 / min_eta / min_w;
 
-    for (term t: terms)
+    for (term &t: terms)
     {
         if (t.i == focus_idx || t.j == focus_idx)
+        {
             t.w = my_infinity;
+        }
     }
 }
 
