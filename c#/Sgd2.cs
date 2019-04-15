@@ -79,6 +79,59 @@ public static class Sgd2
             yield return stress;
         }
     }
+	public static IEnumerable<double> Convergence(int[,] d, Vector2[] positions, int expIter=30, double eps = 0.03)
+    {
+        int n = positions.Length;
+        int nn = (n*(n-1))/2;
+
+        var pairs = CreatePairs(n);
+        var rnd = new Random();
+
+        double etaMax = EtaMax(d), etaMin = .1;
+        double lambda = -Math.Log(etaMin / etaMax) / (expIter - 1);
+
+        double tSwitch = Math.Log(etaMax) / lambda;
+        int kSwitch = (int)tSwitch+1;
+        Console.Error.WriteLine(etaMax + " " + lambda + " " + tSwitch);
+
+        for (int k=0; k<kSwitch; k++)
+        {
+            GraphIO.FYShuffle2(pairs, rnd);
+            double eta = etaMax * Math.Exp(-lambda * k);
+            for (int ij = 0; ij < nn; ij++)
+            {
+                int i = pairs[ij, 0], j = pairs[ij, 1];
+                Satisfy(ref positions[i], ref positions[j], d[i, j], eta);
+            }
+            //Console.Error.WriteLine("                  " + eta);
+            double stress = GraphIO.CalculateStress(d, positions, n);
+            yield return stress;
+        }
+
+        for (int k=kSwitch; k<1000; k++)
+        {
+            double maxMovement = 0;
+            GraphIO.FYShuffle2(pairs, rnd);
+            double eta = 1.0 / (1+lambda*(k-tSwitch));
+            for (int ij = 0; ij < nn; ij++)
+            {
+                int i = pairs[ij, 0], j = pairs[ij, 1];
+                double r = Satisfy(ref positions[i], ref positions[j], d[i, j], eta);
+
+                r = Math.Abs(r);
+                //r = r * r;
+                if (r > maxMovement)
+                    maxMovement = r;
+            }
+            //Console.Error.WriteLine("                  " + eta + " " + maxMovement);
+
+            double stress = GraphIO.CalculateStress(d, positions, n);
+            yield return stress;
+
+            if (maxMovement < eps)
+                yield break;
+        }
+    }
 	
     public static IEnumerable<double> Once(int[,] d, Vector2[] positions, IEnumerable<double> eta) {
         int n = positions.Length;
