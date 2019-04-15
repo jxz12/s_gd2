@@ -43,6 +43,7 @@ void mds_direct(int n, double* X, double* d, double* w, int t_max, double* etas,
 void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas)
 {
 	// iterate through step sizes
+    int iteration = 0;
 	for (double eta : etas)
 	{
         // shuffle terms
@@ -71,6 +72,7 @@ void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas)
 			X[j*2] += r_x;
 			X[j*2+1] += r_y;
 		}
+        std::cerr << ++iteration << ", eta: " << eta << std::endl;
 	}
 }
 
@@ -78,7 +80,7 @@ void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas)
 void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas, double delta)
 {
 	// iterate through step sizes
-    int i=0;
+    int iteration = 0;
 	for (double eta : etas)
 	{
         // shuffle terms
@@ -104,7 +106,6 @@ void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas, d
                 Delta_max = Delta;
 
 			double r = Delta / mag;
-			//double r = mu * (mag-d_ij) / (2*mag);
 			double r_x = r * dx;
 			double r_y = r * dy;
 			
@@ -113,7 +114,7 @@ void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas, d
 			X[j*2] += r_x;
 			X[j*2+1] += r_y;
 		}
-        std::cout << ++i << " " << eta << " " << Delta_max << std::endl;
+        std::cerr << ++iteration << ", eta: " << eta << ", Delta: " << Delta_max << std::endl;
         if (Delta_max < delta)
             return;
 	}
@@ -122,6 +123,7 @@ void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas, d
 void sgd_horizontal(double* X, std::vector<term> &terms, const std::vector<double> &etas, double delta)
 {
 	// iterate through step sizes
+    int iteration = 0;
 	for (double eta : etas)
 	{
         // shuffle terms
@@ -155,6 +157,7 @@ void sgd_horizontal(double* X, std::vector<term> &terms, const std::vector<doubl
 			X[j*2] += r_x;
 			//X[j*2+1] += r_y;
 		}
+        std::cerr << ++iteration << ", eta: " << eta << ", Delta: " << Delta_max << std::endl;
         if (Delta_max < delta)
             return;
 	}
@@ -435,18 +438,16 @@ void focus_terms(std::vector<term> &terms, const std::vector<double> &etas, int 
 
 void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, double eps)
 {
-    auto start = std::chrono::steady_clock::now();
+    //auto start = std::chrono::steady_clock::now();
 
     std::vector<term> terms = bfs(n, m, I, J);
-
-    auto end = std::chrono::steady_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() << "ms" << std::endl;
+    //auto end = std::chrono::steady_clock::now();
+    //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() << "ms" << std::endl;
 
     std::vector<double> etas = schedule(terms, t_max, eps);
     sgd(X, terms, etas);
-
-    end = std::chrono::steady_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() << "ms" << std::endl;
+    //end = std::chrono::steady_clock::now();
+    //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() << "ms" << std::endl;
 }
 void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps)
 {
