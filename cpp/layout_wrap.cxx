@@ -3117,11 +3117,11 @@ namespace swig {
     extern void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps);
     extern void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax);
     extern void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax);
-    extern void layout_unweighted_focus(int n, double* X, int m, int* I, int* J, int f, int t_max, double eps, double delta, int t_maxmax);
-    extern void layout_weighted_focus(int n, double* X, int m, int* I, int* J, int f, double* V, int t_max, double eps, double delta, int t_maxmax);
+    extern void layout_unweighted_focus(int n, double* X, int m, int* I, int* J, int f, int t_max, double eps, int t_maxmax);
+    extern void layout_weighted_focus(int n, double* X, int m, int* I, int* J, int f, double* V, int t_max, double eps, int t_maxmax);
     extern void layout_unweighted_horizontal(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax);
     extern void layout_weighted_horizontal(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax);
-    extern void mds_direct(int n, double* X, double* d, double* w, int t_max, double* eta, bool horizontal);
+    extern void mds_direct(int n, double* X, double* d, double* w, int t_max, double* eta);
 
 
 #ifndef SWIG_FILE_WITH_INIT
@@ -3286,20 +3286,6 @@ SWIG_AsVal_int (PyObject * obj, int *val)
 }
 
 
-SWIGINTERN int
-SWIG_AsVal_bool (PyObject *obj, bool *val)
-{
-  int r;
-  if (!PyBool_Check(obj))
-    return SWIG_ERROR;
-  r = PyObject_IsTrue(obj);
-  if (r == -1)
-    return SWIG_ERROR;
-  if (val) *val = r ? true : false;
-  return SWIG_OK;
-}
-
-
     void dimension_check(int kd) {
         if (kd != 2) {
             PyErr_Format(PyExc_ValueError, "only 2D positions are currently supported");
@@ -3360,22 +3346,22 @@ SWIG_AsVal_bool (PyObject *obj, bool *val)
                                     int* I, int len_I,
                                     int* J, int len_J,
                                     int f,
-                                    int t_max, double eps, double delta, int t_maxmax) {
+                                    int t_max, double eps, int t_maxmax) {
 
         dimension_check(kd);
         unweighted_edge_check(len_I, len_J);
-        layout_unweighted_focus(n, X, len_I, I, J, f, t_max, eps, delta, t_maxmax);
+        layout_unweighted_focus(n, X, len_I, I, J, f, t_max, eps, t_maxmax);
     }
     void np_layout_weighted_focus(double* X, int n, int kd,
                                   int* I, int len_I,
                                   int* J, int len_J,
                                   int f,
                                   double* V, int len_V,
-                                  int t_max, double eps, double delta, int t_maxmax) {
+                                  int t_max, double eps, int t_maxmax) {
 
         dimension_check(kd);
         weighted_edge_check(len_I, len_J, len_V);
-        layout_weighted_focus(n, X, len_I, I, J, f, V, t_max, eps, delta, t_maxmax);
+        layout_weighted_focus(n, X, len_I, I, J, f, V, t_max, eps, t_maxmax);
     }
     void np_layout_unweighted_horizontal(double* X, int n, int kd,
                                          int* I, int len_I,
@@ -3407,7 +3393,7 @@ SWIG_AsVal_bool (PyObject *obj, bool *val)
             PyErr_Format(PyExc_ValueError, "d or w not right length for condensed distance matrix");
             return;
         }
-        mds_direct(n, X, d, w, len_eta, eta, false);
+        mds_direct(n, X, d, w, len_eta, eta);
     }
 
 
@@ -4255,8 +4241,7 @@ SWIGINTERN PyObject *_wrap_layout_unweighted_focus__SWIG_0(PyObject *SWIGUNUSEDP
   int arg6 ;
   int arg7 ;
   double arg8 ;
-  double arg9 ;
-  int arg10 ;
+  int arg9 ;
   int val1 ;
   int ecode1 = 0 ;
   void *argp2 = 0 ;
@@ -4273,10 +4258,8 @@ SWIGINTERN PyObject *_wrap_layout_unweighted_focus__SWIG_0(PyObject *SWIGUNUSEDP
   int ecode7 = 0 ;
   double val8 ;
   int ecode8 = 0 ;
-  double val9 ;
+  int val9 ;
   int ecode9 = 0 ;
-  int val10 ;
-  int ecode10 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -4286,9 +4269,8 @@ SWIGINTERN PyObject *_wrap_layout_unweighted_focus__SWIG_0(PyObject *SWIGUNUSEDP
   PyObject * obj6 = 0 ;
   PyObject * obj7 = 0 ;
   PyObject * obj8 = 0 ;
-  PyObject * obj9 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOO:layout_unweighted_focus",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:layout_unweighted_focus",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(obj0, &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "layout_unweighted_focus" "', argument " "1"" of type '" "int""'");
@@ -4329,17 +4311,12 @@ SWIGINTERN PyObject *_wrap_layout_unweighted_focus__SWIG_0(PyObject *SWIGUNUSEDP
     SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "layout_unweighted_focus" "', argument " "8"" of type '" "double""'");
   } 
   arg8 = static_cast< double >(val8);
-  ecode9 = SWIG_AsVal_double(obj8, &val9);
+  ecode9 = SWIG_AsVal_int(obj8, &val9);
   if (!SWIG_IsOK(ecode9)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "layout_unweighted_focus" "', argument " "9"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "layout_unweighted_focus" "', argument " "9"" of type '" "int""'");
   } 
-  arg9 = static_cast< double >(val9);
-  ecode10 = SWIG_AsVal_int(obj9, &val10);
-  if (!SWIG_IsOK(ecode10)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "layout_unweighted_focus" "', argument " "10"" of type '" "int""'");
-  } 
-  arg10 = static_cast< int >(val10);
-  layout_unweighted_focus(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
+  arg9 = static_cast< int >(val9);
+  layout_unweighted_focus(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -4358,8 +4335,7 @@ SWIGINTERN PyObject *_wrap_layout_weighted_focus__SWIG_0(PyObject *SWIGUNUSEDPAR
   double *arg7 = (double *) 0 ;
   int arg8 ;
   double arg9 ;
-  double arg10 ;
-  int arg11 ;
+  int arg10 ;
   int val1 ;
   int ecode1 = 0 ;
   void *argp2 = 0 ;
@@ -4378,10 +4354,8 @@ SWIGINTERN PyObject *_wrap_layout_weighted_focus__SWIG_0(PyObject *SWIGUNUSEDPAR
   int ecode8 = 0 ;
   double val9 ;
   int ecode9 = 0 ;
-  double val10 ;
+  int val10 ;
   int ecode10 = 0 ;
-  int val11 ;
-  int ecode11 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -4392,9 +4366,8 @@ SWIGINTERN PyObject *_wrap_layout_weighted_focus__SWIG_0(PyObject *SWIGUNUSEDPAR
   PyObject * obj7 = 0 ;
   PyObject * obj8 = 0 ;
   PyObject * obj9 = 0 ;
-  PyObject * obj10 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOOO:layout_weighted_focus",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOOO:layout_weighted_focus",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(obj0, &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "layout_weighted_focus" "', argument " "1"" of type '" "int""'");
@@ -4440,17 +4413,12 @@ SWIGINTERN PyObject *_wrap_layout_weighted_focus__SWIG_0(PyObject *SWIGUNUSEDPAR
     SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "layout_weighted_focus" "', argument " "9"" of type '" "double""'");
   } 
   arg9 = static_cast< double >(val9);
-  ecode10 = SWIG_AsVal_double(obj9, &val10);
+  ecode10 = SWIG_AsVal_int(obj9, &val10);
   if (!SWIG_IsOK(ecode10)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "layout_weighted_focus" "', argument " "10"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "layout_weighted_focus" "', argument " "10"" of type '" "int""'");
   } 
-  arg10 = static_cast< double >(val10);
-  ecode11 = SWIG_AsVal_int(obj10, &val11);
-  if (!SWIG_IsOK(ecode11)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "layout_weighted_focus" "', argument " "11"" of type '" "int""'");
-  } 
-  arg11 = static_cast< int >(val11);
-  layout_weighted_focus(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
+  arg10 = static_cast< int >(val10);
+  layout_weighted_focus(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -4661,7 +4629,6 @@ SWIGINTERN PyObject *_wrap_mds_direct__SWIG_0(PyObject *SWIGUNUSEDPARM(self), Py
   double *arg4 = (double *) 0 ;
   int arg5 ;
   double *arg6 = (double *) 0 ;
-  bool arg7 ;
   int val1 ;
   int ecode1 = 0 ;
   void *argp2 = 0 ;
@@ -4674,17 +4641,14 @@ SWIGINTERN PyObject *_wrap_mds_direct__SWIG_0(PyObject *SWIGUNUSEDPARM(self), Py
   int ecode5 = 0 ;
   void *argp6 = 0 ;
   int res6 = 0 ;
-  bool val7 ;
-  int ecode7 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   PyObject * obj4 = 0 ;
   PyObject * obj5 = 0 ;
-  PyObject * obj6 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOO:mds_direct",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOO:mds_direct",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(obj0, &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "mds_direct" "', argument " "1"" of type '" "int""'");
@@ -4715,12 +4679,7 @@ SWIGINTERN PyObject *_wrap_mds_direct__SWIG_0(PyObject *SWIGUNUSEDPARM(self), Py
     SWIG_exception_fail(SWIG_ArgError(res6), "in method '" "mds_direct" "', argument " "6"" of type '" "double *""'"); 
   }
   arg6 = reinterpret_cast< double * >(argp6);
-  ecode7 = SWIG_AsVal_bool(obj6, &val7);
-  if (!SWIG_IsOK(ecode7)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "mds_direct" "', argument " "7"" of type '" "bool""'");
-  } 
-  arg7 = static_cast< bool >(val7);
-  mds_direct(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+  mds_direct(arg1,arg2,arg3,arg4,arg5,arg6);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -5796,8 +5755,7 @@ SWIGINTERN PyObject *_wrap_layout_unweighted_focus__SWIG_1(PyObject *SWIGUNUSEDP
   int arg8 ;
   int arg9 ;
   double arg10 ;
-  double arg11 ;
-  int arg12 ;
+  int arg11 ;
   PyArrayObject *array1 = NULL ;
   PyArrayObject *array4 = NULL ;
   int is_new_object4 = 0 ;
@@ -5809,10 +5767,8 @@ SWIGINTERN PyObject *_wrap_layout_unweighted_focus__SWIG_1(PyObject *SWIGUNUSEDP
   int ecode9 = 0 ;
   double val10 ;
   int ecode10 = 0 ;
-  double val11 ;
+  int val11 ;
   int ecode11 = 0 ;
-  int val12 ;
-  int ecode12 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -5820,9 +5776,8 @@ SWIGINTERN PyObject *_wrap_layout_unweighted_focus__SWIG_1(PyObject *SWIGUNUSEDP
   PyObject * obj4 = 0 ;
   PyObject * obj5 = 0 ;
   PyObject * obj6 = 0 ;
-  PyObject * obj7 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOO:layout_unweighted_focus",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOO:layout_unweighted_focus",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6)) SWIG_fail;
   {
     array1 = obj_to_array_no_conversion(obj0, NPY_DOUBLE);
     if (!array1 || !require_dimensions(array1,2) || !require_contiguous(array1)
@@ -5870,18 +5825,13 @@ SWIGINTERN PyObject *_wrap_layout_unweighted_focus__SWIG_1(PyObject *SWIGUNUSEDP
     SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "layout_unweighted_focus" "', argument " "10"" of type '" "double""'");
   } 
   arg10 = static_cast< double >(val10);
-  ecode11 = SWIG_AsVal_double(obj6, &val11);
+  ecode11 = SWIG_AsVal_int(obj6, &val11);
   if (!SWIG_IsOK(ecode11)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "layout_unweighted_focus" "', argument " "11"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "layout_unweighted_focus" "', argument " "11"" of type '" "int""'");
   } 
-  arg11 = static_cast< double >(val11);
-  ecode12 = SWIG_AsVal_int(obj7, &val12);
-  if (!SWIG_IsOK(ecode12)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "layout_unweighted_focus" "', argument " "12"" of type '" "int""'");
-  } 
-  arg12 = static_cast< int >(val12);
+  arg11 = static_cast< int >(val11);
   {
-    np_layout_unweighted_focus(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
+    np_layout_unweighted_focus(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
     if (PyErr_Occurred()) SWIG_fail;
   }
   resultobj = SWIG_Py_Void();
@@ -5917,17 +5867,17 @@ fail:
 
 SWIGINTERN PyObject *_wrap_layout_unweighted_focus(PyObject *self, PyObject *args) {
   Py_ssize_t argc;
-  PyObject *argv[11] = {
+  PyObject *argv[10] = {
     0
   };
   Py_ssize_t ii;
   
   if (!PyTuple_Check(args)) SWIG_fail;
   argc = args ? PyObject_Length(args) : 0;
-  for (ii = 0; (ii < 10) && (ii < argc); ii++) {
+  for (ii = 0; (ii < 9) && (ii < argc); ii++) {
     argv[ii] = PyTuple_GET_ITEM(args,ii);
   }
-  if (argc == 8) {
+  if (argc == 7) {
     int _v;
     {
       _v = is_array(argv[0]) && PyArray_EquivTypenums(array_type(argv[0]),
@@ -5958,17 +5908,11 @@ SWIGINTERN PyObject *_wrap_layout_unweighted_focus(PyObject *self, PyObject *arg
               }
               if (_v) {
                 {
-                  int res = SWIG_AsVal_double(argv[6], NULL);
+                  int res = SWIG_AsVal_int(argv[6], NULL);
                   _v = SWIG_CheckState(res);
                 }
                 if (_v) {
-                  {
-                    int res = SWIG_AsVal_int(argv[7], NULL);
-                    _v = SWIG_CheckState(res);
-                  }
-                  if (_v) {
-                    return _wrap_layout_unweighted_focus__SWIG_1(self, args);
-                  }
+                  return _wrap_layout_unweighted_focus__SWIG_1(self, args);
                 }
               }
             }
@@ -5977,7 +5921,7 @@ SWIGINTERN PyObject *_wrap_layout_unweighted_focus(PyObject *self, PyObject *arg
       }
     }
   }
-  if (argc == 10) {
+  if (argc == 9) {
     int _v;
     {
       int res = SWIG_AsVal_int(argv[0], NULL);
@@ -6017,17 +5961,11 @@ SWIGINTERN PyObject *_wrap_layout_unweighted_focus(PyObject *self, PyObject *arg
                   }
                   if (_v) {
                     {
-                      int res = SWIG_AsVal_double(argv[8], NULL);
+                      int res = SWIG_AsVal_int(argv[8], NULL);
                       _v = SWIG_CheckState(res);
                     }
                     if (_v) {
-                      {
-                        int res = SWIG_AsVal_int(argv[9], NULL);
-                        _v = SWIG_CheckState(res);
-                      }
-                      if (_v) {
-                        return _wrap_layout_unweighted_focus__SWIG_0(self, args);
-                      }
+                      return _wrap_layout_unweighted_focus__SWIG_0(self, args);
                     }
                   }
                 }
@@ -6042,8 +5980,8 @@ SWIGINTERN PyObject *_wrap_layout_unweighted_focus(PyObject *self, PyObject *arg
 fail:
   SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'layout_unweighted_focus'.\n"
     "  Possible C/C++ prototypes are:\n"
-    "    layout_unweighted_focus(int,double *,int,int *,int *,int,int,double,double,int)\n"
-    "    np_layout_unweighted_focus(double *,int,int,int *,int,int *,int,int,int,double,double,int)\n");
+    "    layout_unweighted_focus(int,double *,int,int *,int *,int,int,double,int)\n"
+    "    np_layout_unweighted_focus(double *,int,int,int *,int,int *,int,int,int,double,int)\n");
   return 0;
 }
 
@@ -6062,8 +6000,7 @@ SWIGINTERN PyObject *_wrap_layout_weighted_focus__SWIG_1(PyObject *SWIGUNUSEDPAR
   int arg10 ;
   int arg11 ;
   double arg12 ;
-  double arg13 ;
-  int arg14 ;
+  int arg13 ;
   PyArrayObject *array1 = NULL ;
   PyArrayObject *array4 = NULL ;
   int is_new_object4 = 0 ;
@@ -6077,10 +6014,8 @@ SWIGINTERN PyObject *_wrap_layout_weighted_focus__SWIG_1(PyObject *SWIGUNUSEDPAR
   int ecode11 = 0 ;
   double val12 ;
   int ecode12 = 0 ;
-  double val13 ;
+  int val13 ;
   int ecode13 = 0 ;
-  int val14 ;
-  int ecode14 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -6089,9 +6024,8 @@ SWIGINTERN PyObject *_wrap_layout_weighted_focus__SWIG_1(PyObject *SWIGUNUSEDPAR
   PyObject * obj5 = 0 ;
   PyObject * obj6 = 0 ;
   PyObject * obj7 = 0 ;
-  PyObject * obj8 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:layout_weighted_focus",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOO:layout_weighted_focus",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7)) SWIG_fail;
   {
     array1 = obj_to_array_no_conversion(obj0, NPY_DOUBLE);
     if (!array1 || !require_dimensions(array1,2) || !require_contiguous(array1)
@@ -6151,18 +6085,13 @@ SWIGINTERN PyObject *_wrap_layout_weighted_focus__SWIG_1(PyObject *SWIGUNUSEDPAR
     SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "layout_weighted_focus" "', argument " "12"" of type '" "double""'");
   } 
   arg12 = static_cast< double >(val12);
-  ecode13 = SWIG_AsVal_double(obj7, &val13);
+  ecode13 = SWIG_AsVal_int(obj7, &val13);
   if (!SWIG_IsOK(ecode13)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "layout_weighted_focus" "', argument " "13"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "layout_weighted_focus" "', argument " "13"" of type '" "int""'");
   } 
-  arg13 = static_cast< double >(val13);
-  ecode14 = SWIG_AsVal_int(obj8, &val14);
-  if (!SWIG_IsOK(ecode14)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "layout_weighted_focus" "', argument " "14"" of type '" "int""'");
-  } 
-  arg14 = static_cast< int >(val14);
+  arg13 = static_cast< int >(val13);
   {
-    np_layout_weighted_focus(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
+    np_layout_weighted_focus(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
     if (PyErr_Occurred()) SWIG_fail;
   }
   resultobj = SWIG_Py_Void();
@@ -6210,17 +6139,17 @@ fail:
 
 SWIGINTERN PyObject *_wrap_layout_weighted_focus(PyObject *self, PyObject *args) {
   Py_ssize_t argc;
-  PyObject *argv[12] = {
+  PyObject *argv[11] = {
     0
   };
   Py_ssize_t ii;
   
   if (!PyTuple_Check(args)) SWIG_fail;
   argc = args ? PyObject_Length(args) : 0;
-  for (ii = 0; (ii < 11) && (ii < argc); ii++) {
+  for (ii = 0; (ii < 10) && (ii < argc); ii++) {
     argv[ii] = PyTuple_GET_ITEM(args,ii);
   }
-  if (argc == 9) {
+  if (argc == 8) {
     int _v;
     {
       _v = is_array(argv[0]) && PyArray_EquivTypenums(array_type(argv[0]),
@@ -6255,17 +6184,11 @@ SWIGINTERN PyObject *_wrap_layout_weighted_focus(PyObject *self, PyObject *args)
                 }
                 if (_v) {
                   {
-                    int res = SWIG_AsVal_double(argv[7], NULL);
+                    int res = SWIG_AsVal_int(argv[7], NULL);
                     _v = SWIG_CheckState(res);
                   }
                   if (_v) {
-                    {
-                      int res = SWIG_AsVal_int(argv[8], NULL);
-                      _v = SWIG_CheckState(res);
-                    }
-                    if (_v) {
-                      return _wrap_layout_weighted_focus__SWIG_1(self, args);
-                    }
+                    return _wrap_layout_weighted_focus__SWIG_1(self, args);
                   }
                 }
               }
@@ -6275,7 +6198,7 @@ SWIGINTERN PyObject *_wrap_layout_weighted_focus(PyObject *self, PyObject *args)
       }
     }
   }
-  if (argc == 11) {
+  if (argc == 10) {
     int _v;
     {
       int res = SWIG_AsVal_int(argv[0], NULL);
@@ -6319,17 +6242,11 @@ SWIGINTERN PyObject *_wrap_layout_weighted_focus(PyObject *self, PyObject *args)
                     }
                     if (_v) {
                       {
-                        int res = SWIG_AsVal_double(argv[9], NULL);
+                        int res = SWIG_AsVal_int(argv[9], NULL);
                         _v = SWIG_CheckState(res);
                       }
                       if (_v) {
-                        {
-                          int res = SWIG_AsVal_int(argv[10], NULL);
-                          _v = SWIG_CheckState(res);
-                        }
-                        if (_v) {
-                          return _wrap_layout_weighted_focus__SWIG_0(self, args);
-                        }
+                        return _wrap_layout_weighted_focus__SWIG_0(self, args);
                       }
                     }
                   }
@@ -6345,8 +6262,8 @@ SWIGINTERN PyObject *_wrap_layout_weighted_focus(PyObject *self, PyObject *args)
 fail:
   SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'layout_weighted_focus'.\n"
     "  Possible C/C++ prototypes are:\n"
-    "    layout_weighted_focus(int,double *,int,int *,int *,int,double *,int,double,double,int)\n"
-    "    np_layout_weighted_focus(double *,int,int,int *,int,int *,int,int,double *,int,int,double,double,int)\n");
+    "    layout_weighted_focus(int,double *,int,int *,int *,int,double *,int,double,int)\n"
+    "    np_layout_weighted_focus(double *,int,int,int *,int,int *,int,int,double *,int,int,double,int)\n");
   return 0;
 }
 
@@ -6993,14 +6910,14 @@ fail:
 
 SWIGINTERN PyObject *_wrap_mds_direct(PyObject *self, PyObject *args) {
   Py_ssize_t argc;
-  PyObject *argv[8] = {
+  PyObject *argv[7] = {
     0
   };
   Py_ssize_t ii;
   
   if (!PyTuple_Check(args)) SWIG_fail;
   argc = args ? PyObject_Length(args) : 0;
-  for (ii = 0; (ii < 7) && (ii < argc); ii++) {
+  for (ii = 0; (ii < 6) && (ii < argc); ii++) {
     argv[ii] = PyTuple_GET_ITEM(args,ii);
   }
   if (argc == 4) {
@@ -7031,7 +6948,7 @@ SWIGINTERN PyObject *_wrap_mds_direct(PyObject *self, PyObject *args) {
       }
     }
   }
-  if (argc == 7) {
+  if (argc == 6) {
     int _v;
     {
       int res = SWIG_AsVal_int(argv[0], NULL);
@@ -7059,13 +6976,7 @@ SWIGINTERN PyObject *_wrap_mds_direct(PyObject *self, PyObject *args) {
               int res = SWIG_ConvertPtr(argv[5], &vptr, SWIGTYPE_p_double, 0);
               _v = SWIG_CheckState(res);
               if (_v) {
-                {
-                  int res = SWIG_AsVal_bool(argv[6], NULL);
-                  _v = SWIG_CheckState(res);
-                }
-                if (_v) {
-                  return _wrap_mds_direct__SWIG_0(self, args);
-                }
+                return _wrap_mds_direct__SWIG_0(self, args);
               }
             }
           }
@@ -7077,7 +6988,7 @@ SWIGINTERN PyObject *_wrap_mds_direct(PyObject *self, PyObject *args) {
 fail:
   SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'mds_direct'.\n"
     "  Possible C/C++ prototypes are:\n"
-    "    mds_direct(int,double *,double *,double *,int,double *,bool)\n"
+    "    mds_direct(int,double *,double *,double *,int,double *)\n"
     "    np_mds_direct(double *,int,int,double *,int,double *,int,double *,int)\n");
   return 0;
 }

@@ -5,11 +5,11 @@
     extern void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps);
     extern void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax);
     extern void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax);
-    extern void layout_unweighted_focus(int n, double* X, int m, int* I, int* J, int f, int t_max, double eps, double delta, int t_maxmax);
-    extern void layout_weighted_focus(int n, double* X, int m, int* I, int* J, int f, double* V, int t_max, double eps, double delta, int t_maxmax);
+    extern void layout_unweighted_focus(int n, double* X, int m, int* I, int* J, int f, int t_max, double eps, int t_maxmax);
+    extern void layout_weighted_focus(int n, double* X, int m, int* I, int* J, int f, double* V, int t_max, double eps, int t_maxmax);
     extern void layout_unweighted_horizontal(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax);
     extern void layout_weighted_horizontal(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax);
-    extern void mds_direct(int n, double* X, double* d, double* w, int t_max, double* eta, bool horizontal);
+    extern void mds_direct(int n, double* X, double* d, double* w, int t_max, double* eta);
 %}
 
 %include "numpy.i"
@@ -40,11 +40,11 @@ extern void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max
 extern void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps);
 extern void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax);
 extern void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax);
-extern void layout_unweighted_focus(int n, double* X, int m, int* I, int* J, int f, int t_max, double eps, double delta, int t_maxmax);
-extern void layout_weighted_focus(int n, double* X, int m, int* I, int* J, int f, double* V, int t_max, double eps, double delta, int t_maxmax);
+extern void layout_unweighted_focus(int n, double* X, int m, int* I, int* J, int f, int t_max, double eps, int t_maxmax);
+extern void layout_weighted_focus(int n, double* X, int m, int* I, int* J, int f, double* V, int t_max, double eps, int t_maxmax);
 extern void layout_unweighted_horizontal(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax);
 extern void layout_weighted_horizontal(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax);
-extern void mds_direct(int n, double* X, double* d, double* w, int t_max, double* eta, bool horizontal);
+extern void mds_direct(int n, double* X, double* d, double* w, int t_max, double* eta);
 
 %rename (layout_unweighted) np_layout_unweighted;
 %exception np_layout_unweighted {
@@ -153,22 +153,22 @@ extern void mds_direct(int n, double* X, double* d, double* w, int t_max, double
                                     int* I, int len_I,
                                     int* J, int len_J,
                                     int f,
-                                    int t_max, double eps, double delta, int t_maxmax) {
+                                    int t_max, double eps, int t_maxmax) {
 
         dimension_check(kd);
         unweighted_edge_check(len_I, len_J);
-        layout_unweighted_focus(n, X, len_I, I, J, f, t_max, eps, delta, t_maxmax);
+        layout_unweighted_focus(n, X, len_I, I, J, f, t_max, eps, t_maxmax);
     }
     void np_layout_weighted_focus(double* X, int n, int kd,
                                   int* I, int len_I,
                                   int* J, int len_J,
                                   int f,
                                   double* V, int len_V,
-                                  int t_max, double eps, double delta, int t_maxmax) {
+                                  int t_max, double eps, int t_maxmax) {
 
         dimension_check(kd);
         weighted_edge_check(len_I, len_J, len_V);
-        layout_weighted_focus(n, X, len_I, I, J, f, V, t_max, eps, delta, t_maxmax);
+        layout_weighted_focus(n, X, len_I, I, J, f, V, t_max, eps, t_maxmax);
     }
     void np_layout_unweighted_horizontal(double* X, int n, int kd,
                                          int* I, int len_I,
@@ -200,7 +200,7 @@ extern void mds_direct(int n, double* X, double* d, double* w, int t_max, double
             PyErr_Format(PyExc_ValueError, "d or w not right length for condensed distance matrix");
             return;
         }
-        mds_direct(n, X, d, w, len_eta, eta, false);
+        mds_direct(n, X, d, w, len_eta, eta);
     }
 %}
 
