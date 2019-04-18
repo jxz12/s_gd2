@@ -11,9 +11,9 @@
 
 struct term
 {
-	int i, j;
-	double d, w;
-	term(int i, int j, double d, double w) : i(i), j(j), d(d), w(w) {}
+    int i, j;
+    double d, w;
+    term(int i, int j, double d, double w) : i(i), j(j), d(d), w(w) {}
 };
 
 void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas);
@@ -43,125 +43,125 @@ void mds_direct(int n, double* X, double* d, double* w, int t_max, double* etas)
 
 void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas)
 {
-	// iterate through step sizes
+    // iterate through step sizes
     int iteration = 0;
-	for (double eta : etas)
-	{
+    for (double eta : etas)
+    {
         // shuffle terms
         std::random_shuffle(terms.begin(), terms.end());
 
-		for (const term &t : terms)
-		{
-			// cap step size
+        for (const term &t : terms)
+        {
+            // cap step size
             double w_ij = t.w;
-			double mu = eta * w_ij;
-			if (mu > 1)
-				mu = 1;
+            double mu = eta * w_ij;
+            if (mu > 1)
+                mu = 1;
 
-			double d_ij = t.d;
-			int i = t.i, j = t.j;
+            double d_ij = t.d;
+            int i = t.i, j = t.j;
 
-			double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
-			double mag = sqrt(dx*dx + dy*dy);
+            double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
+            double mag = sqrt(dx*dx + dy*dy);
 
-			double r = mu * (mag-d_ij) / (2*mag);
-			double r_x = r * dx;
-			double r_y = r * dy;
-			
-			X[i*2] -= r_x;
-			X[i*2+1] -= r_y;
-			X[j*2] += r_x;
-			X[j*2+1] += r_y;
-		}
+            double r = mu * (mag-d_ij) / (2*mag);
+            double r_x = r * dx;
+            double r_y = r * dy;
+            
+            X[i*2] -= r_x;
+            X[i*2+1] -= r_y;
+            X[j*2] += r_x;
+            X[j*2+1] += r_y;
+        }
         std::cerr << ++iteration << ", eta: " << eta << std::endl;
-	}
+    }
 }
 
 
 void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas, double delta)
 {
-	// iterate through step sizes
+    // iterate through step sizes
     int iteration = 0;
-	for (double eta : etas)
-	{
+    for (double eta : etas)
+    {
         // shuffle terms
         std::random_shuffle(terms.begin(), terms.end());
 
         double Delta_max = 0;
-		for (const term &t : terms)
-		{
-			// cap step size
+        for (const term &t : terms)
+        {
+            // cap step size
             double w_ij = t.w;
-			double mu = eta * w_ij;
-			if (mu > 1)
-				mu = 1;
+            double mu = eta * w_ij;
+            if (mu > 1)
+                mu = 1;
 
-			double d_ij = t.d;
-			int i = t.i, j = t.j;
+            double d_ij = t.d;
+            int i = t.i, j = t.j;
 
-			double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
-			double mag = sqrt(dx*dx + dy*dy);
+            double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
+            double mag = sqrt(dx*dx + dy*dy);
 
             double Delta = mu * (mag-d_ij) / 2;
             if (Delta > Delta_max)
                 Delta_max = Delta;
 
-			double r = Delta / mag;
-			double r_x = r * dx;
-			double r_y = r * dy;
-			
-			X[i*2] -= r_x;
-			X[i*2+1] -= r_y;
-			X[j*2] += r_x;
-			X[j*2+1] += r_y;
-		}
+            double r = Delta / mag;
+            double r_x = r * dx;
+            double r_y = r * dy;
+            
+            X[i*2] -= r_x;
+            X[i*2+1] -= r_y;
+            X[j*2] += r_x;
+            X[j*2+1] += r_y;
+        }
         std::cerr << ++iteration << ", eta: " << eta << ", Delta: " << Delta_max << std::endl;
         if (Delta_max < delta)
             return;
-	}
+    }
 }
 
 void sgd_horizontal(double* X, std::vector<term> &terms, const std::vector<double> &etas, double delta)
 {
-	// iterate through step sizes
+    // iterate through step sizes
     int iteration = 0;
-	for (double eta : etas)
-	{
+    for (double eta : etas)
+    {
         // shuffle terms
         std::random_shuffle(terms.begin(), terms.end());
 
         double Delta_max = 0;
-		for (const term &t : terms)
-		{
-			// cap step size
+        for (const term &t : terms)
+        {
+            // cap step size
             double w_ij = t.w;
-			double mu = eta * w_ij;
-			if (mu > 1)
-				mu = 1;
+            double mu = eta * w_ij;
+            if (mu > 1)
+                mu = 1;
 
-			double d_ij = t.d;
-			int i = t.i, j = t.j;
+            double d_ij = t.d;
+            int i = t.i, j = t.j;
 
-			double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
-			double mag = sqrt(dx*dx + dy*dy);
+            double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
+            double mag = sqrt(dx*dx + dy*dy);
 
             double Delta = mu * (mag-d_ij) / 2.0;
             if (Delta > Delta_max)
                 Delta_max = Delta;
 
-			double r = Delta / mag;
-			double r_x = r * dx;
-			//double r_y = r * dy;
-			
-			X[i*2] -= r_x;
-			//X[i*2+1] -= r_y;
-			X[j*2] += r_x;
-			//X[j*2+1] += r_y;
-		}
+            double r = Delta / mag;
+            double r_x = r * dx;
+            //double r_y = r * dy;
+            
+            X[i*2] -= r_x;
+            //X[i*2+1] -= r_y;
+            X[j*2] += r_x;
+            //X[j*2+1] += r_y;
+        }
         std::cerr << ++iteration << ", eta: " << eta << ", Delta: " << Delta_max << std::endl;
         if (Delta_max < delta)
             return;
-	}
+    }
 }
 
 std::vector<std::vector<int>> build_graph_unweighted(int n, int m, int* I, int* J)
@@ -193,9 +193,9 @@ std::vector<term> bfs(int n, int m, int* I, int* J)
 {
     auto graph = build_graph_unweighted(n, m, I, J);
 
-	int nC2 = (n*(n-1))/2;
-	std::vector<term> terms;
-	terms.reserve(nC2);
+    int nC2 = (n*(n-1))/2;
+    std::vector<term> terms;
+    terms.reserve(nC2);
 
     int terms_size_goal = 0; // to keep track of when to stop searching i<j
 
@@ -290,9 +290,9 @@ std::vector<term> dijkstra(int n, int m, int* I, int* J, double* V)
 {
     auto graph = build_graph_weighted(n, m, I, J, V);
 
-	int nC2 = (n*(n-1))/2;
-	std::vector<term> terms;
-	terms.reserve(nC2);
+    int nC2 = (n*(n-1))/2;
+    std::vector<term> terms;
+    terms.reserve(nC2);
 
     int terms_size_goal = 0; // to keep track of when to stop searching i<j
 
@@ -585,19 +585,19 @@ void layout_weighted_horizontal(int n, double* X, int m, int* I, int* J, double*
 // d and w should be condensed distance matrices
 void mds_direct(int n, double* X, double* d, double* w, int t_max, double* eta)
 {
-	// initialize SGD
-	int nC2 = (n*(n-1))/2;
-	std::vector<term> terms;
-	terms.reserve(nC2);
+    // initialize SGD
+    int nC2 = (n*(n-1))/2;
+    std::vector<term> terms;
+    terms.reserve(nC2);
     int ij=0;
-	for (int i=0; i<n; i++) // unpack the condensed distance matrices
-	{
-		for (int j=i+1; j<n; j++)
-		{
-			terms.push_back(term(i, j, d[ij], w[ij]));
+    for (int i=0; i<n; i++) // unpack the condensed distance matrices
+    {
+        for (int j=i+1; j<n; j++)
+        {
+            terms.push_back(term(i, j, d[ij], w[ij]));
             ij += 1;
-		}
-	}
+        }
+    }
 
     // initialize step sizes
     std::vector<double> etas;
