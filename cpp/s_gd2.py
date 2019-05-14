@@ -139,7 +139,6 @@ def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, b
         f.write('\n'.join(svg_list))
         f.close()
 
-
 def concentric_circles(num_circles, offset=[0,0], radius=1, n_seg=100):
     """Returns coordinates to plot concentric circles using pyplot.plot in a numpy matrix
     where the first dimension is which circle, the second is x/y axis, third is the coordinates
