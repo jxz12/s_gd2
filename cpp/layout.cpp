@@ -73,7 +73,7 @@ void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas)
             X[j*2] += r_x;
             X[j*2+1] += r_y;
         }
-        std::cerr << ++iteration << ", eta: " << eta << std::endl;
+        //std::cerr << ++iteration << ", eta: " << eta << std::endl;
     }
 }
 
@@ -176,7 +176,7 @@ std::vector<std::vector<int>> build_graph_unweighted(int n, int m, int* I, int* 
         if (i >= n || j >= n)
             throw "i or j bigger than n";
 
-        if (undirected[j].find(i) == undirected[j].end()) // if edge not seen
+        if (i != j && undirected[j].find(i) == undirected[j].end()) // if edge not seen
         {
             undirected[i].insert(j);
             undirected[j].insert(i);
@@ -270,7 +270,7 @@ std::vector<std::vector<edge>> build_graph_weighted(int n, int m, int* I, int* J
         if (v <= 0)
             throw "v less or equal 0";
 
-        if (undirected[j].find(i) == undirected[j].end()) // if key not there
+        if (i != j && undirected[j].find(i) == undirected[j].end()) // if key not there
         {
             undirected[i].insert({j, v});
             undirected[j].insert({i, v});
