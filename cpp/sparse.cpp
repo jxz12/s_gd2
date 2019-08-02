@@ -110,6 +110,7 @@ List<int> maxmin_random_sp(const Graph& graph, int n_pivots, int p0=0)
         argmins[argmax] = argmax;
         maxmin_bfs(graph, argmax, mins, argmins);
     }
+    // TODO: look for error in bfs here
     return argmins;
 }
 
@@ -117,7 +118,7 @@ List<term> MSSP(const Graph& graph, const List<int> pivots)
 {
     int n = pivots.size();
 
-    // get list of pivots, set of region
+    // get pivots and their regions, but in sets
     Dict<int, Set<int>> regions;
     for (int i = 0; i < n; i++)
     {
@@ -129,7 +130,7 @@ List<term> MSSP(const Graph& graph, const List<int> pivots)
     }
 
     Dict<int, Dict<int, term>> termsDict;
-    for (auto const& region : regions)
+    for (const auto& region : regions)
     {
         // q contains next to visit
         std::queue<int> q;
@@ -167,18 +168,8 @@ List<term> MSSP(const Graph& graph, const List<int> pivots)
                         q2.push(d[next]);
                     }
 
-                    //std::cerr << next << " " << d[next] << " " << s << std::endl;
                     int i = next;
-                    if (p < i)
-                    {
-                        if (termsDict.find(p) == termsDict.end())
-                            termsDict[p] = Dict<int, term>();
-                        if (termsDict[p].find(i) == termsDict[p].end())
-                            termsDict[p].insert({ i, term(p, i, d[next]) });
-
-                        termsDict[p].at(i).w_ji = (double)s / (d[next] * d[next]);
-                    }
-                    else
+                    if (i < p)
                     {
                         if (termsDict.find(i) == termsDict.end())
                             termsDict[i] = Dict<int, term>();
@@ -186,6 +177,15 @@ List<term> MSSP(const Graph& graph, const List<int> pivots)
                             termsDict[i].insert({ p, term(i, p, d[next]) });
 
                         termsDict[i].at(p).w_ij = (double)s / (d[next] * d[next]);
+                    }
+                    else
+                    {
+                        if (termsDict.find(p) == termsDict.end())
+                            termsDict[p] = Dict<int, term>();
+                        if (termsDict[p].find(i) == termsDict[p].end())
+                            termsDict[p].insert({ i, term(p, i, d[next]) });
+
+                        termsDict[p].at(i).w_ji = (double)s / (d[next] * d[next]);
                     }
                 }
             }
@@ -210,15 +210,42 @@ List<term> MSSP(const Graph& graph, const List<int> pivots)
         }
     }
     List<term> terms;
-    for (auto const& i : termsDict)
+    for (const auto& i : termsDict)
     {
-        for (auto const& term : i.second)
+        for (const auto& term : i.second)
         {
             terms.push_back(term.second);
         }
     }
     return terms;
 }
+
+List<double> schedule(const List<term> &terms, int t_max, double eps)
+{
+    double w_min = std::numeric_limits<double>::max();
+    double w_max = std::numeric_limits<double>::min();
+    for (const auto& term : terms)
+    {
+        if (term.w_ij < w_min && term.w_ij != 0) w_min = term.w_ij;
+        if (term.w_ji < w_min && term.w_ji != 0) w_min = term.w_ji;
+
+        if (term.w_ij > w_max) w_max = term.w_ij;
+        if (term.w_ji > w_max) w_max = term.w_ji;
+    }
+    double eta_max = 1.0 / w_min;
+    double eta_min = eps / w_max;
+
+    double lambda = log(eta_max/eta_min) / (t_max-1);
+
+    // initialize step sizes
+    std::vector<double> etas;
+    etas.reserve(t_max);
+    for (int t=0; t<t_max; t++)
+        etas.push_back(eta_max * exp(-lambda * t));
+
+    return etas;
+}
+
 
 void sgd(double* X, List<term> &terms, const List<double> &etas)
 {
@@ -267,10 +294,22 @@ int main()
 
     Graph g = build_graph_unweighted(8, 9, I, J);
 
-    auto pivots = maxmin_random_sp(g, 3, 0);
+    auto pivots = maxmin_random_sp(g, 2, 0);
     auto terms = MSSP(g, pivots);
-    //for (auto const& term : terms)
+    //for (const auto& term : terms)
     //{
     //    std::cout << term.i << " " << term.j << " " << term.d << " " << term.w_ij << " " << term.w_ji << std::endl;
     //}
+    auto etas = schedule(terms, 15, .1);
+    //for (double eta : etas)
+    //{
+    //    std::cout << eta << std::endl;
+    //}
+    double X[16] = { 0,0, .1,.2, .4,.7, .2,.4, .9,.4, .5,.6, .1,.7, .5,.7 };
+    sgd(X, terms, etas);
+
+    for (int i=0; i<8; i++)
+    {
+        std::cout << X[2 * i] << " " << X[2 * i + 1] << std::endl;
+    }
 }
