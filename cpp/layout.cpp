@@ -31,13 +31,6 @@ void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_m
 void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax);
 void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax);
 
-// focus is never convergent
-void layout_unweighted_focus(int n, double* X, int m, int* I, int* J, int f, int t_max, double eps, int t_maxmax);
-void layout_weighted_focus(int n, double* X, int m, int* I, int* J, int f, double* V, int t_max, double eps, int t_maxmax);
-// horizontal is always convergent
-void layout_unweighted_horizontal(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax);
-void layout_weighted_horizontal(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax);
-
 void mds_direct(int n, double* X, double* d, double* w, int t_max, double* etas);
 
 
@@ -114,49 +107,6 @@ void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas, d
             X[i*2+1] -= r_y;
             X[j*2] += r_x;
             X[j*2+1] += r_y;
-        }
-        std::cerr << ++iteration << ", eta: " << eta << ", Delta: " << Delta_max << std::endl;
-        if (Delta_max < delta)
-            return;
-    }
-}
-
-void sgd_horizontal(double* X, std::vector<term> &terms, const std::vector<double> &etas, double delta)
-{
-    // iterate through step sizes
-    int iteration = 0;
-    for (double eta : etas)
-    {
-        // shuffle terms
-        std::random_shuffle(terms.begin(), terms.end());
-
-        double Delta_max = 0;
-        for (const term &t : terms)
-        {
-            // cap step size
-            double w_ij = t.w;
-            double mu = eta * w_ij;
-            if (mu > 1)
-                mu = 1;
-
-            double d_ij = t.d;
-            int i = t.i, j = t.j;
-
-            double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
-            double mag = sqrt(dx*dx + dy*dy);
-
-            double Delta = mu * (mag-d_ij) / 2.0;
-            if (Delta > Delta_max)
-                Delta_max = Delta;
-
-            double r = Delta / mag;
-            double r_x = r * dx;
-            //double r_y = r * dy;
-            
-            X[i*2] -= r_x;
-            //X[i*2+1] -= r_y;
-            X[j*2] += r_x;
-            //X[j*2+1] += r_y;
         }
         std::cerr << ++iteration << ", eta: " << eta << ", Delta: " << Delta_max << std::endl;
         if (Delta_max < delta)
@@ -412,58 +362,6 @@ std::vector<double> schedule_convergent(const std::vector<term> &terms, int t_ma
 
     return etas;
 }
-std::vector<double> schedule_focus(const std::vector<term> &terms, int t_max, double eps, int t_maxmax)
-{
-    double w_min = terms[0].w, w_max = terms[0].w;
-    for (int i=1; i<terms.size(); i++)
-    {
-        double w = terms[i].w;
-        if (w < w_min)
-            w_min = w;
-
-        if (w > w_max)
-            w_max = w;
-    }
-    double eta_max = 1.0 / w_min;
-    double eta_min = eps / w_max;
-
-    double lambda = log(eta_max/eta_min) / (t_max-1);
-
-    // initialize step sizes
-    std::vector<double> etas;
-    etas.reserve(t_max);
-    for (int t=0; t<t_maxmax; t++)
-        etas.push_back(eta_max * exp(-lambda * t));
-
-    return etas;
-}
-
-void focus_terms(std::vector<term> &terms, const std::vector<double> &etas, int focus_idx)
-{
-    double min_eta = etas[0];
-    for (int i=1; i<etas.size(); i++)
-    {
-        if (etas[i] < min_eta)
-            min_eta = etas[i];
-    }
-    double min_w = terms[0].w;
-    for (int i=1; i<terms.size(); i++)
-    {
-        if (terms[i].w < min_w)
-            min_w = terms[i].w;
-    }
-
-    // this is necessary because we do not know the behaviour of c++ infinity*infinity
-    double my_infinity = 1.0 / min_eta / min_w;
-
-    for (term &t: terms)
-    {
-        if (t.i == focus_idx || t.j == focus_idx)
-        {
-            t.w = my_infinity;
-        }
-    }
-}
 
 void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, double eps)
 {
@@ -485,6 +383,7 @@ void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, doubl
         std::cerr << "Error: " << msg << std::endl;
     }
 }
+
 void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps)
 {
     try
@@ -524,63 +423,6 @@ void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double*
         std::cerr << "Error: " << msg << std::endl;
     }
 }
-// focus is never convergent
-void layout_unweighted_focus(int n, double* X, int m, int* I, int* J, int f, int t_max, double eps, int t_maxmax)
-{
-    try
-    {
-        std::vector<term> terms = bfs(n, m, I, J);
-        std::vector<double> etas = schedule_focus(terms, t_max, eps, t_maxmax);
-        focus_terms(terms, etas, f);
-        sgd(X, terms, etas);
-    }
-    catch (const char* msg)
-    {
-        std::cerr << "Error: " << msg << std::endl;
-    }
-}
-void layout_weighted_focus(int n, double* X, int m, int* I, int* J, int f, double* V, int t_max, double eps, int t_maxmax)
-{
-    try
-    {
-        std::vector<term> terms = dijkstra(n, m, I, J, V);
-        std::vector<double> etas = schedule_focus(terms, t_max, eps, t_maxmax);
-        focus_terms(terms, etas, f);
-        sgd(X, terms, etas);
-    }
-    catch (const char* msg)
-    {
-        std::cerr << "Error: " << msg << std::endl;
-    }
-}
-// horizontal is always convergent
-void layout_unweighted_horizontal(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax)
-{
-    try
-    {
-        std::vector<term> terms = bfs(n, m, I, J);
-        std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
-        sgd_horizontal(X, terms, etas, delta);
-    }
-    catch (const char* msg)
-    {
-        std::cerr << "Error: " << msg << std::endl;
-    }
-}
-void layout_weighted_horizontal(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax)
-{
-    try
-    {
-        std::vector<term> terms = dijkstra(n, m, I, J, V);
-        std::vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
-        sgd_horizontal(X, terms, etas, delta);
-    }
-    catch (const char* msg)
-    {
-        std::cerr << "Error: " << msg << std::endl;
-    }
-}
-
 
 // d and w should be condensed distance matrices
 void mds_direct(int n, double* X, double* d, double* w, int t_max, double* eta)

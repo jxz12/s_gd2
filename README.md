@@ -20,15 +20,11 @@ Other useful functions include the following:
 ```python
 layout_convergent(I, J, V=None, t_max=30, eps=.1, delta=.03, t_maxmax=200)
 ```
-This function implements the convergent schedule from the paper, Section 2.1.2. If V is provided, the graph is treated as weighted. It produces layouts that are slightly tidier than layout(), but requires more iterations. t_maxmax is a maximum iteration regardless of delta.
+This function implements the convergent schedule from the paper, Section 2.1.2. If `V` is provided, the graph is treated as weighted (same as the non-convergent case). It produces layouts that are slightly tidier than `layout()`, but requires more iterations. `t_maxmax` is a maximum iteration regardless of delta.
 ```python
-layout_focus(I, J, f, V=None, t_max=50, eps=.0001)
+mds_direct(n, d, w, etas)
 ```
-This can be used to focus on a vertex with index `f`, as in Section 4.1 of the paper. Requires larger t_max and smaller eps in order to produce a good layout. Always uses a non-convergent schedule
-```python
-layout_horizontal(I, J, Y, V=None, t_max=30, eps=.1, delta=.03, t_maxmax=200)
-```
-is used to constrain the y-axis positions to the values in `Y`. This is useful for generating Sugiyama-style layouts, or for embedding metadata within the layout itself e.g. the trophic level of species in a food web. Always uses the convergent schedule.
+This function directly optimises the stress function (Equation (1) in the paper) given n vertices, and condensed distance matrices `d` and `w` (see `scipy.spatial.distance.squareform`). The step sizes are given as input `etas`.
 
 TODO: a fast implementation of the sparse model, from Section 4.3 of the paper, is in the works.
 

@@ -29,37 +29,7 @@ def layout_convergent(I, J, V=None, t_max=30, eps=.1, delta=.03, t_maxmax=200):
 
     return X
 
-def layout_focus(I, J, focus, V=None, t_max=30, eps=.1, t_maxmax=50):
-    """takes a list of indices I and J with single index f
-    and returns a n-by-2 matrix of positions X with a focus on node f.
-    iterations continue to t_maxmax so that distances from f stabilize"""
-
-    # initialize positions
-    X = random_init(I, J)
-
-    if V is None:
-        cpp.layout_unweighted_focus(X, I, J, focus, t_max, eps, t_maxmax)
-    else:
-        cpp.layout_weighted_focus(X, I, J, focus, V, t_max, eps, t_maxmax)
-
-    return X
-
-def layout_horizontal(I, J, Y, V=None, t_max=30, eps=.1, delta=.03, t_maxmax=200):
-    """takes a list of indices I and J with vertical positions y
-    and returns a n-by-2 matrix of positions X with y-axis constrained to y
-    at a guaranteed stationary point."""
-
-    # initialize positions
-    X = random_init(I, J)
-    X[:,1] = Y
-
-    if V is None:
-        cpp.layout_unweighted_horizontal(X, I, J, t_max, eps, delta, t_maxmax)
-    else:
-        cpp.layout_weighted_horizontal(X, I, J, V, t_max, eps, delta, t_maxmax)
-    return X
-
-def mds_direct(n, d, w, eta):
+def mds_direct(n, d, w, etas):
     """takes nC2 vectors d and w with a vector of step sizes eta
     and returns a n-by-2 matrix of positions X"""
 
@@ -83,10 +53,6 @@ def random_init(I, J):
     n = max(max(I), max(J)) + 1
     X = np.random.rand(n,2)
     return X
-
-def procrustes_distance(X, X_compare):
-    # TODO: return the total procrustes error, individual errors, and (translation, rotation) for best fit
-    return 0
 
 def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, border=50, linkopacity=1):
     """Takes a n-by-2 matrix of positions X and index pairs I and J
@@ -138,23 +104,3 @@ def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, b
         f = open(filepath, 'w')
         f.write('\n'.join(svg_list))
         f.close()
-
-def concentric_circles(num_circles, offset=[0,0], radius=1, n_seg=100):
-    """Returns coordinates to plot concentric circles using pyplot.plot in a numpy matrix
-    where the first dimension is which circle, the second is x/y axis, third is the coordinates
-    an optional offset may also be used. Useful for layout_focus()."""
-
-    circles = np.empty(shape=(num_circles, 2, n_seg+1))
-    for circ in range(num_circles):
-        r = circ+1 * radius
-        for seg in range(n_seg):
-            angle = seg/n_seg * 2*np.pi
-            circles[circ,0,seg] = r * np.cos(angle) + offset[0]
-            circles[circ,1,seg] = r * np.sin(angle) + offset[1]
-
-        # join the end back to the start
-        circles[circ,0,n_seg] = circles[circ,0,0]
-        circles[circ,1,n_seg] = circles[circ,1,0]
-
-    return circles
-
