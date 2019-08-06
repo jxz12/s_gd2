@@ -286,6 +286,22 @@ void sgd(double* X, List<term> &terms, const List<double> &etas)
     }
 }
 
+void layout_sparse_unweighted(int n, double* X, int m, int* I, int* J, int p, int t_max, double eps)
+{
+    try
+    {
+        Graph g = build_graph_unweighted(n, m, I, J);
+
+        auto pivots = maxmin_random_sp(g, p, 0);
+        auto terms = MSSP(g, pivots);
+        auto etas = schedule(terms, t_max, eps);
+        sgd(X, terms, etas);
+    }
+    catch (const char* msg)
+    {
+        std::cerr << "Error: " << msg << std::endl;
+    }
+}
 
 int main()
 {

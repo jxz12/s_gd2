@@ -7,7 +7,7 @@
     extern void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax);
 
     extern void mds_direct(int n, double* X, double* d, double* w, int t_max, double* etas);
-    extern void layout_sparse(int n, double* X, int m, int* I, int* J, int p, int t_max, double eps);
+    extern void layout_sparse_unweighted(int n, double* X, int m, int* I, int* J, int p, int t_max, double eps);
 %}
 
 %include "numpy.i"
@@ -38,7 +38,7 @@ extern void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J
 extern void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax);
 
 extern void mds_direct(int n, double* X, double* d, double* w, int t_max, double* etas);
-extern void layout_sparse(int n, double* X, int m, int* I, int* J, int p, int t_max, double eps);
+extern void layout_sparse_unweighted(int n, double* X, int m, int* I, int* J, int p, int t_max, double eps);
 
 %rename (layout_unweighted) np_layout_unweighted;
 %exception np_layout_unweighted {
@@ -61,8 +61,8 @@ extern void layout_sparse(int n, double* X, int m, int* I, int* J, int p, int t_
     if (PyErr_Occurred()) SWIG_fail;
 }
 
-%rename (layout_sparse) np_layout_sparse;
-%exception np_layout_sparse {
+%rename (layout_sparse_unweighted) np_layout_sparse_unweighted;
+%exception np_layout_sparse_unweighted {
     $action
     if (PyErr_Occurred()) SWIG_fail;
 }

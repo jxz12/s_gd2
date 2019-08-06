@@ -11,7 +11,7 @@ except AttributeError:
 
 _layout = Extension(
     name="_layout",
-    sources=["layout_wrap.cxx", "layout.cpp"],
+    sources=["layout_wrap.cxx", "layout.cpp", "sparse.cpp"],
     extra_compile_args=["-std=c++11"],
     include_dirs=[numpy_include]
 )
