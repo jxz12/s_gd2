@@ -16,9 +16,7 @@ struct term
     term(int i, int j, double d, double w) : i(i), j(j), d(d), w(w) {}
 };
 
-void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas);
-void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas, double delta);
-void sgd_horizontal(double* X, std::vector<term> &terms, const std::vector<double> &etas, double delta); // only changes x coords
+void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas, double delta=0);
 
 std::vector<term> bfs(int n, int m, int* I, int* J);
 std::vector<term> dijkstra(int n, int m, int* I, int* J, double* V);
@@ -32,43 +30,6 @@ void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t
 void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax);
 
 void mds_direct(int n, double* X, double* d, double* w, int t_max, double* etas);
-
-
-void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas)
-{
-    // iterate through step sizes
-    int iteration = 0;
-    for (double eta : etas)
-    {
-        // shuffle terms
-        std::random_shuffle(terms.begin(), terms.end());
-
-        for (const term &t : terms)
-        {
-            // cap step size
-            double w_ij = t.w;
-            double mu = eta * w_ij;
-            if (mu > 1)
-                mu = 1;
-
-            double d_ij = t.d;
-            int i = t.i, j = t.j;
-
-            double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
-            double mag = sqrt(dx*dx + dy*dy);
-
-            double r = mu * (mag-d_ij) / (2*mag);
-            double r_x = r * dx;
-            double r_y = r * dy;
-            
-            X[i*2] -= r_x;
-            X[i*2+1] -= r_y;
-            X[j*2] += r_x;
-            X[j*2+1] += r_y;
-        }
-        //std::cerr << ++iteration << ", eta: " << eta << std::endl;
-    }
-}
 
 
 void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas, double delta)
@@ -95,6 +56,7 @@ void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas, d
             double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
             double mag = sqrt(dx*dx + dy*dy);
 
+            // check distances for early stopping
             double Delta = mu * (mag-d_ij) / 2;
             if (Delta > Delta_max)
                 Delta_max = Delta;
@@ -108,7 +70,7 @@ void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas, d
             X[j*2] += r_x;
             X[j*2+1] += r_y;
         }
-        std::cerr << ++iteration << ", eta: " << eta << ", Delta: " << Delta_max << std::endl;
+        //std::cerr << ++iteration << ", eta: " << eta << ", Delta: " << Delta_max << std::endl;
         if (Delta_max < delta)
             return;
     }
@@ -304,11 +266,8 @@ std::vector<double> schedule(const std::vector<term> &terms, int t_max, double e
     for (int i=1; i<terms.size(); i++)
     {
         double w = terms[i].w;
-        if (w < w_min)
-            w_min = w;
-
-        if (w > w_max)
-            w_max = w;
+        if (w < w_min) w_min = w;
+        if (w > w_max) w_max = w;
     }
     double eta_max = 1.0 / w_min;
     double eta_min = eps / w_max;
@@ -330,11 +289,8 @@ std::vector<double> schedule_convergent(const std::vector<term> &terms, int t_ma
     for (int i=1; i<terms.size(); i++)
     {
         double w = terms[i].w;
-        if (w < w_min)
-            w_min = w;
-
-        if (w > w_max)
-            w_max = w;
+        if (w < w_min) w_min = w;
+        if (w > w_max) w_max = w;
     }
     double eta_max = 1.0 / w_min;
     double eta_min = eps / w_max;
