@@ -91,9 +91,9 @@ def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, b
         X_svg[i] += [border + scale*noderadius, border + scale*noderadius]
 
     svg_list = []
-    svg_list.append('<svg width="{}" height="{}" xmlns="http://www.w3.org/2000/svg">'.format(width, width))
+    svg_list.append('<svg width="{:.0f}" height="{:.0f}" xmlns="http://www.w3.org/2000/svg">'.format(width, width))
     svg_list.append('<style type="text/css">')
-    svg_list.append('line{{stroke:black;stroke-width:{};stroke-opacity:{};stroke-linecap:round;}}'.format(scale*linkwidth,linkopacity))
+    svg_list.append('line{{stroke:black;stroke-width:{:.3f};stroke-opacity:{:.3f};stroke-linecap:round;}}'.format(scale*linkwidth,linkopacity))
     svg_list.append('circle{{r:{}}}'.format(scale*noderadius))
     svg_list.append('</style>');
 
@@ -102,17 +102,17 @@ def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, b
         j = J[ij]
         X_i = X_svg[i]
         X_j = X_svg[j]
-        svg_list.append('<line x1="{}" x2="{}" y1="{}" y2="{}"/>'.format(X_i[0], X_j[0], X_i[1], X_j[1]));
+        svg_list.append('<line x1="{:.1f}" x2="{:.1f}" y1="{:.1f}" y2="{:.1f}"/>'.format(X_i[0], X_j[0], X_i[1], X_j[1]));
 
     if noderadius > 0:
         # draw nodes
         for i in range(n):
-            svg_list.append('<circle cx="{}" cy="{}"/>'.format(X_svg[i][0], X_svg[i][1]))
+            svg_list.append('<circle cx="{:.1f}" cy="{:.1f}"/>'.format(X_svg[i][0], X_svg[i][1]))
 
     svg_list.append("</svg>")
 
     if filepath == None or filepath == '':
-        print('\n'.join(svg_list))
+        return '\n'.join(svg_list)
     else:
         f = open(filepath, 'w')
         f.write('\n'.join(svg_list))
