@@ -16,18 +16,56 @@ template<typename K, typename V>
 using Dict = std::unordered_map<K, V>;
 template<typename T>
 using List = std::vector<T>;
-
 using Graph = List<List<int>>;
 
-struct term
+struct term_sparse
 {
     int i, j;
     double d, w_ij, w_ji;
-    term(int i, int j, double d) : i(i), j(j), d(d), w_ij(0), w_ji(0) {}
+    term_sparse(int i, int j, double d) : i(i), j(j), d(d), w_ij(0), w_ji(0) {}
 };
 
 
-Graph build_graph_unweighted(int n, int m, int* I, int* J)
+void sgd(double* X, List<term_sparse> &terms, const List<double> &etas)
+{
+    // iterate through step sizes
+    for (double eta : etas)
+    {
+        // shuffle terms
+        std::random_shuffle(terms.begin(), terms.end());
+
+        for (const term_sparse& t : terms)
+        {
+            // cap step size
+            double mu_i = eta * t.w_ij;
+            if (mu_i > 1)
+                mu_i = 1;
+
+            // cap step size
+            double mu_j = eta * t.w_ji;
+            if (mu_j > 1)
+                mu_j = 1;
+
+            double d_ij = t.d;
+            int i = t.i, j = t.j;
+
+            double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
+            double mag = sqrt(dx*dx + dy*dy);
+
+            double r = (mag-d_ij) / (2*mag);
+            double r_x = r * dx;
+            double r_y = r * dy;
+
+            X[i*2] -= mu_i * r_x;
+            X[i*2+1] -= mu_i * r_y;
+            X[j*2] += mu_j * r_x;
+            X[j*2+1] += mu_j * r_y;
+        }
+    }
+}
+
+
+Graph build_graph(int n, int m, int* I, int* J)
 {
     // used to make graph undirected, in case it is not already
     std::vector<std::unordered_set<int>> undirected(n);
@@ -114,7 +152,7 @@ List<int> maxmin_random_sp(const Graph& graph, int n_pivots, int p0=0)
     return argmins;
 }
 
-List<term> MSSP(const Graph& graph, const List<int> pivots)
+List<term_sparse> MSSP(const Graph& graph, const List<int> pivots)
 {
     int n = pivots.size();
 
@@ -129,7 +167,7 @@ List<term> MSSP(const Graph& graph, const List<int> pivots)
         regions[pivots[i]].insert(i);
     }
 
-    Dict<int, Dict<int, term>> termsDict;
+    Dict<int, Dict<int, term_sparse>> termsDict;
     for (const auto& region : regions)
     {
         // q contains next to visit
@@ -172,18 +210,18 @@ List<term> MSSP(const Graph& graph, const List<int> pivots)
                     if (i < p)
                     {
                         if (termsDict.find(i) == termsDict.end())
-                            termsDict[i] = Dict<int, term>();
+                            termsDict[i] = Dict<int, term_sparse>();
                         if (termsDict[i].find(p) == termsDict[i].end())
-                            termsDict[i].insert({ p, term(i, p, d[next]) });
+                            termsDict[i].insert({ p, term_sparse(i, p, d[next]) });
 
                         termsDict[i].at(p).w_ij = (double)s / (d[next] * d[next]);
                     }
                     else
                     {
                         if (termsDict.find(p) == termsDict.end())
-                            termsDict[p] = Dict<int, term>();
+                            termsDict[p] = Dict<int, term_sparse>();
                         if (termsDict[p].find(i) == termsDict[p].end())
-                            termsDict[p].insert({ i, term(p, i, d[next]) });
+                            termsDict[p].insert({ i, term_sparse(p, i, d[next]) });
 
                         termsDict[p].at(i).w_ji = (double)s / (d[next] * d[next]);
                     }
@@ -199,9 +237,9 @@ List<term> MSSP(const Graph& graph, const List<int> pivots)
             if (i < j)
             {
                 if (termsDict.find(i) == termsDict.end())
-                    termsDict[i] = Dict<int, term>();
+                    termsDict[i] = Dict<int, term_sparse>();
                 if (termsDict[i].find(j) == termsDict[i].end())
-                    termsDict[i].insert({ j, term(i, j, 1) });
+                    termsDict[i].insert({ j, term_sparse(i, j, 1) });
                 else
                     termsDict[i].at(j).d = 1;
 
@@ -209,18 +247,18 @@ List<term> MSSP(const Graph& graph, const List<int> pivots)
             }
         }
     }
-    List<term> terms;
+    List<term_sparse> terms;
     for (const auto& i : termsDict)
     {
-        for (const auto& term : i.second)
+        for (const auto& j : i.second)
         {
-            terms.push_back(term.second);
+            terms.push_back(j.second);
         }
     }
     return terms;
 }
 
-List<double> schedule(const List<term> &terms, int t_max, double eps)
+List<double> schedule(const List<term_sparse> &terms, int t_max, double eps)
 {
     double w_min = std::numeric_limits<double>::max();
     double w_max = std::numeric_limits<double>::min();
@@ -247,50 +285,12 @@ List<double> schedule(const List<term> &terms, int t_max, double eps)
 }
 
 
-void sgd(double* X, List<term> &terms, const List<double> &etas)
-{
-    // iterate through step sizes
-    int iteration = 0;
-    for (double eta : etas)
-    {
-        // shuffle terms
-        std::random_shuffle(terms.begin(), terms.end());
-
-        for (term const& t : terms)
-        {
-            // cap step size
-            double mu_i = eta * t.w_ij;
-            if (mu_i > 1)
-                mu_i = 1;
-
-            // cap step size
-            double mu_j = eta * t.w_ji;
-            if (mu_j > 1)
-                mu_j = 1;
-
-            double d_ij = t.d;
-            int i = t.i, j = t.j;
-
-            double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
-            double mag = sqrt(dx*dx + dy*dy);
-
-            double r = (mag-d_ij) / (2*mag);
-            double r_x = r * dx;
-            double r_y = r * dy;
-
-            X[i*2] -= mu_i * r_x;
-            X[i*2+1] -= mu_i * r_y;
-            X[j*2] += mu_j * r_x;
-            X[j*2+1] += mu_j * r_y;
-        }
-    }
-}
 
 void layout_sparse_unweighted(int n, double* X, int m, int* I, int* J, int p, int t_max, double eps)
 {
     try
     {
-        Graph g = build_graph_unweighted(n, m, I, J);
+        Graph g = build_graph(n, m, I, J);
 
         auto pivots = maxmin_random_sp(g, p, 0);
         auto terms = MSSP(g, pivots);
@@ -308,19 +308,20 @@ int main()
     int I[9] = { 0,0,1,2,3,4,4,5,6 };
     int J[9] = { 1,2,3,3,4,5,6,7,7 };
 
-    Graph g = build_graph_unweighted(8, 9, I, J);
+    Graph g = build_graph(8, 9, I, J);
 
     auto pivots = maxmin_random_sp(g, 2, 0);
     auto terms = MSSP(g, pivots);
+    auto etas = schedule(terms, 15, .1);
     //for (const auto& term : terms)
     //{
     //    std::cout << term.i << " " << term.j << " " << term.d << " " << term.w_ij << " " << term.w_ji << std::endl;
     //}
-    auto etas = schedule(terms, 15, .1);
     //for (double eta : etas)
     //{
     //    std::cout << eta << std::endl;
     //}
+
     double X[16] = { 0,0, .1,.2, .4,.7, .2,.4, .9,.4, .5,.6, .1,.7, .5,.7 };
     sgd(X, terms, etas);
 

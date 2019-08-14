@@ -21,6 +21,7 @@ setup(
     version="0.15",
     author="Jonathan Zheng",
     author_email="jxz12@ic.ac.uk",
+    url="www.github.com/jxz12/s_gd2",
     description="A package for performing stochastic gradient descent (arXiv:1710.04626) to layout graphs",
     install_requires=['numpy'],
     setup_requires=['numpy'],

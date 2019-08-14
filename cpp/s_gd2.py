@@ -1,17 +1,17 @@
-import layout as cpp
-import numpy as np
+import layout as _cpp
+import numpy as _np
 
 def layout(I, J, V=None, t_max=15, eps=.1):
     """takes a list of indices I and J
     and returns a n-by-2 matrix of positions X with minimized stress."""
 
     # initialize positions
-    X = random_init(I, J)
+    X = _random_init(I, J)
     
     if V is None:
-        cpp.layout_unweighted(X, I, J, t_max, eps)
+        _cpp.layout_unweighted(X, I, J, t_max, eps)
     else:
-        cpp.layout_weighted(X, I, J, V, t_max, eps)
+        _cpp.layout_weighted(X, I, J, V, t_max, eps)
     return X
 
 def layout_convergent(I, J, V=None, t_max=30, eps=.1, delta=.03, t_maxmax=200):
@@ -20,38 +20,51 @@ def layout_convergent(I, J, V=None, t_max=30, eps=.1, delta=.03, t_maxmax=200):
     at a guaranteed stationary point."""
 
     # initialize positions
-    X = random_init(I, J)
+    X = _random_init(I, J)
 
     if V is None:
-        cpp.layout_unweighted_convergent(X, I, J, t_max, eps, delta, t_maxmax)
+        _cpp.layout_unweighted_convergent(X, I, J, t_max, eps, delta, t_maxmax)
     else:
-        cpp.layout_weighted_convergent(X, I, J, V, t_max, eps, delta, t_maxmax)
+        _cpp.layout_weighted_convergent(X, I, J, V, t_max, eps, delta, t_maxmax)
 
     return X
+
+def layout_sparse(I, J, npivots, t_max=15, eps=.1):
+    """takes a list of indices I and J
+    and returns a n-by-2 matrix of positions X with minimized stress
+    using the sparse approximation of Ortmann et al. (2017)"""
+
+    # initialize positions
+    X = _random_init(I, J)
+
+    _cpp.layout_sparse_unweighted(X, I, J, npivots, t_max, eps);
+
+    return X
+
 
 def mds_direct(n, d, w, etas):
     """takes nC2 vectors d and w with a vector of step sizes eta
     and returns a n-by-2 matrix of positions X"""
 
     # initialize positions
-    X = np.random.rand(n, 2)
+    X = _np.random.rand(n, 2)
     nC2 = (n*(n-1))/2
     if len(d) != nC2 or len(w) != nC2:
         raise "d and w are not correct length condensed distance matrices"
 
-    cpp.mds_direct(X, d, w, eta)
+    _cpp.mds_direct(X, d, w, eta)
     return X
 
 
 
 ### helper functions below, no c++ bindings ###
 
-def random_init(I, J):
+def _random_init(I, J):
     if len(I) != len(J):
         raise "length of edge indices I and J not equal"
 
     n = max(max(I), max(J)) + 1
-    X = np.random.rand(n,2)
+    X = _np.random.rand(n,2)
     return X
 
 def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, border=50, linkopacity=1):
@@ -72,7 +85,7 @@ def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, b
     range_max += 2*noderadius # guarantee no nodes are cut off at the edges
     scale = (width-2*border) / range_max
 
-    X_svg = np.empty((n,2))
+    X_svg = _np.empty((n,2))
     for i in range(n):
         X_svg[i] = (X[i] - X_min) * scale
         X_svg[i] += [border + scale*noderadius, border + scale*noderadius]

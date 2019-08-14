@@ -35,7 +35,6 @@ void mds_direct(int n, double* X, double* d, double* w, int t_max, double* etas)
 void sgd(double* X, std::vector<term> &terms, const std::vector<double> &etas, double delta)
 {
     // iterate through step sizes
-    int iteration = 0;
     for (double eta : etas)
     {
         // shuffle terms
