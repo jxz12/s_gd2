@@ -103,29 +103,33 @@ def weighted_edge_check(len_I, len_J, len_V):
     return _layout.weighted_edge_check(len_I, len_J, len_V)
 weighted_edge_check = _layout.weighted_edge_check
 
-def layout_unweighted(*args):
-    return _layout.layout_unweighted(*args)
+def layout_unweighted(X, I, J, t_max, eps):
+    return _layout.layout_unweighted(X, I, J, t_max, eps)
 layout_unweighted = _layout.layout_unweighted
 
-def layout_weighted(*args):
-    return _layout.layout_weighted(*args)
+def layout_weighted(X, I, J, V, t_max, eps):
+    return _layout.layout_weighted(X, I, J, V, t_max, eps)
 layout_weighted = _layout.layout_weighted
 
-def layout_unweighted_convergent(*args):
-    return _layout.layout_unweighted_convergent(*args)
+def layout_unweighted_convergent(X, I, J, t_max, eps, delta, t_maxmax):
+    return _layout.layout_unweighted_convergent(X, I, J, t_max, eps, delta, t_maxmax)
 layout_unweighted_convergent = _layout.layout_unweighted_convergent
 
-def layout_weighted_convergent(*args):
-    return _layout.layout_weighted_convergent(*args)
+def layout_weighted_convergent(X, I, J, V, t_max, eps, delta, t_maxmax):
+    return _layout.layout_weighted_convergent(X, I, J, V, t_max, eps, delta, t_maxmax)
 layout_weighted_convergent = _layout.layout_weighted_convergent
 
-def mds_direct(*args):
-    return _layout.mds_direct(*args)
-mds_direct = _layout.mds_direct
-
-def layout_sparse_unweighted(*args):
-    return _layout.layout_sparse_unweighted(*args)
+def layout_sparse_unweighted(X, I, J, p, t_max, eps):
+    return _layout.layout_sparse_unweighted(X, I, J, p, t_max, eps)
 layout_sparse_unweighted = _layout.layout_sparse_unweighted
+
+def layout_sparse_weighted(X, I, J, V, p, t_max, eps):
+    return _layout.layout_sparse_weighted(X, I, J, V, p, t_max, eps)
+layout_sparse_weighted = _layout.layout_sparse_weighted
+
+def mds_direct(X, d, w, eta):
+    return _layout.mds_direct(X, d, w, eta)
+mds_direct = _layout.mds_direct
 # This file is compatible with both classic and new-style classes.
 
 

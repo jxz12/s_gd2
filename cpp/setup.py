@@ -11,20 +11,19 @@ except AttributeError:
 
 _layout = Extension(
     name="_layout",
-    sources=["layout_wrap.cxx", "layout.cpp", "sparse.cpp"],
+    sources=["layout.cpp", "sparse.cpp", "layout_wrap.cxx"],
     extra_compile_args=["-std=c++11"],
     include_dirs=[numpy_include]
 )
 
 setup(
     name="s_gd2",
-    version="0.15",
+    version="0.2",
     author="Jonathan Zheng",
     author_email="jxz12@ic.ac.uk",
     url="www.github.com/jxz12/s_gd2",
     description="A package for performing stochastic gradient descent (arXiv:1710.04626) to layout graphs",
     install_requires=['numpy'],
-    setup_requires=['numpy'],
     py_modules=['s_gd2', 'layout'],
     ext_modules=[_layout]
 )

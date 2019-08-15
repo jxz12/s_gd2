@@ -1,13 +1,7 @@
 %module layout
 %{
     #define SWIG_FILE_WITH_INIT
-    extern void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, double eps);
-    extern void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps);
-    extern void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax);
-    extern void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax);
-
-    extern void mds_direct(int n, double* X, double* d, double* w, int t_max, double* etas);
-    extern void layout_sparse_unweighted(int n, double* X, int m, int* I, int* J, int p, int t_max, double eps);
+    #include "layout.hpp"
 %}
 
 %include "numpy.i"
@@ -22,23 +16,14 @@
 
 // edge indices
 %apply (int* IN_ARRAY1, int DIM1){(int* I, int len_I),
-                                  (int* J, int len_J)} // edge weights
+                                  (int* J, int len_J)}
 %apply (double* IN_ARRAY1, int DIM1){(double* V, int len_V)}
 
-// direct MDS
+// for direct MDS with weights given
 %apply (double* IN_ARRAY1, int DIM1){(double* d, int len_d),
                                      (double* w, int len_w),
                                      (double* eta, int len_eta)}
-
-
-
-extern void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, double eps);
-extern void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps);
-extern void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax);
-extern void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax);
-
-extern void mds_direct(int n, double* X, double* d, double* w, int t_max, double* etas);
-extern void layout_sparse_unweighted(int n, double* X, int m, int* I, int* J, int p, int t_max, double eps);
+#include "layout.hpp"
 
 %rename (layout_unweighted) np_layout_unweighted;
 %exception np_layout_unweighted {
@@ -66,6 +51,12 @@ extern void layout_sparse_unweighted(int n, double* X, int m, int* I, int* J, in
     $action
     if (PyErr_Occurred()) SWIG_fail;
 }
+%rename (layout_sparse_weighted) np_layout_sparse_weighted;
+%exception np_layout_sparse_weighted {
+    $action
+    if (PyErr_Occurred()) SWIG_fail;
+}
+
 %rename (mds_direct) np_mds_direct;
 %exception np_mds_direct {
     $action
@@ -129,6 +120,26 @@ extern void layout_sparse_unweighted(int n, double* X, int m, int* I, int* J, in
         weighted_edge_check(len_I, len_J, len_V);
         layout_weighted_convergent(n, X, len_I, I, J, V, t_max, eps, delta, t_maxmax);
     }
+    void np_layout_sparse_unweighted(double* X, int n, int kd,
+                                     int* I, int len_I,
+                                     int* J, int len_J,
+                                     int p, int t_max, double eps) {
+
+        dimension_check(kd);
+        unweighted_edge_check(len_I, len_J);
+        layout_sparse_unweighted(n, X, len_I, I, J, p, t_max, eps);
+    }
+    void np_layout_sparse_weighted(double* X, int n, int kd,
+                                     int* I, int len_I,
+                                     int* J, int len_J,
+                                     double* V, int len_V,
+                                     int p, int t_max, double eps) {
+
+        dimension_check(kd);
+        weighted_edge_check(len_I, len_J, len_V);
+        layout_sparse_weighted(n, X, len_I, I, J, V, p, t_max, eps);
+    }
+
     void np_mds_direct(double* X, int n, int kd,
                        double* d, int len_d,
                        double* w, int len_w,
@@ -141,15 +152,6 @@ extern void layout_sparse_unweighted(int n, double* X, int m, int* I, int* J, in
             return;
         }
         mds_direct(n, X, d, w, len_eta, eta);
-    }
-    void np_layout_sparse_unweighted(double* X, int n, int kd,
-                                     int* I, int len_I,
-                                     int* J, int len_J,
-                                     int p, int t_max, double eps) {
-
-        dimension_check(kd);
-        unweighted_edge_check(len_I, len_J);
-        layout_sparse_unweighted(n, X, len_I, I, J, p, t_max, eps);
     }
 %}
 

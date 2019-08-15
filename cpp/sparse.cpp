@@ -70,7 +70,7 @@ vector<int> maxmin_random_sp_unweighted(const vector<vector<int>>& graph, int n_
     for (int i = 0; i < n; i++)
     {
         if (argmins[i] == -1)
-            throw "graph has more than one connected component";
+            throw "graph is not strongly connected, or is not indexed from zero";
     }
 
     // remaining pivots
@@ -293,7 +293,6 @@ vector<int> maxmin_random_sp_weighted(const vector<vector<edge>>& graph, int n_p
                 break;
             }
         }
-        std::cerr << argmax << std::endl;
 
         mins[argmax] = 0;
         argmins[argmax] = argmax;

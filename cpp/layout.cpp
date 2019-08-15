@@ -124,7 +124,7 @@ vector<term> bfs(int n, int m, int* I, int* J)
         }
         if (terms.size() != terms_size_goal)
         {
-            throw "graph is not strongly connected";
+            throw "graph is not strongly connected, or is not indexed from zero";
         }
     }
     return terms;
@@ -220,7 +220,7 @@ vector<term> dijkstra(int n, int m, int* I, int* J, double* V)
         }
         if (terms.size() != terms_size_goal)
         {
-            throw "graph is not strongly connected";
+            throw "graph is not strongly connected, or is not indexed from zero";
         }
     }
     return terms;
