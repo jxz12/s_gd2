@@ -31,7 +31,7 @@ def layout_convergent(I, J, V=None, t_max=30, eps=.1, delta=.03, t_maxmax=200):
 
     return X
 
-def layout_sparse(I, J, npivots, V=None, t_max=15, eps=.1):
+def layout_sparse(I, J, npivots, V=None, t_max=30, eps=.01):
     """takes a list of indices I and J
     and returns a n-by-2 matrix of positions X with minimized stress
     using the sparse approximation of Ortmann et al. (2017)"""

@@ -18,10 +18,10 @@ _layout = Extension(
 
 setup(
     name="s_gd2",
-    version="0.2",
+    version="0.20",
     author="Jonathan Zheng",
     author_email="jxz12@ic.ac.uk",
-    url="www.github.com/jxz12/s_gd2",
+    url="https://www.github.com/jxz12/s_gd2",
     description="A package for performing stochastic gradient descent (arXiv:1710.04626) to layout graphs",
     install_requires=['numpy'],
     py_modules=['s_gd2', 'layout'],
