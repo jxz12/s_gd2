@@ -75,19 +75,57 @@ def random_init(I, J):
     X = np.random.rand(n,2)
     return X
 
-#def draw_png(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=100, border=50, linkopacity=1):
-#    """Takes a n-by-2 matrix of positions X and index pairs I and J
-#    and draws it to a .png file.
-#    It is a direct conversion of draw_svg(), but using the cairosvg
-#    package to convert to render the image. It may therefore be slow
-#    for large graphs."""
-#
-#    svg = draw_svg(X,I,J,None,noderadius,linkwidth,width,border,linkopacity)
-#    import cairosvg as cairo
-#    cairo.svg2png(bytestring=svg.encode('ASCII'), write_to=filepath)
-    
 
-def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, border=50, linkopacity=1):
+def draw_png(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1):
+    """Takes a n-by-2 matrix of positions X and index pairs I and J
+    and draws it to a .png file, using the Pillow library."""
+
+    n = len(X)
+    m = len(I)
+
+    X_min = [min(X[i,0] for i in range(n)), min(X[i,1] for i in range(n))]
+    X_max = [max(X[i,0] for i in range(n)), max(X[i,1] for i in range(n))]
+
+    range_max = max(X_max[0]-X_min[0], X_max[1]-X_min[1]) # taller or wider
+    range_max += 2*noderadius # guarantee no nodes are cut off at the edges
+    scale = (width-2*border) / range_max
+
+    X_png = np.empty((n,2))
+    for i in range(n):
+        X_png[i] = (X[i] - X_min) * scale
+        X_png[i] += [border + scale*noderadius, border + scale*noderadius]
+
+    # use cairo to draw
+    import cairo
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, width)
+    ctx = cairo.Context(surface)
+
+    ctx.set_line_width(linkwidth * scale)
+    ctx.set_line_cap(cairo.LineCap.ROUND)
+    ctx.set_source_rgba(0,0,0,linkopacity)
+
+    # draw links
+    for ij in range(m):
+        i = I[ij]
+        j = J[ij]
+        X_i = X_png[i]
+        X_j = X_png[j]
+        ctx.move_to(X_i[0], X_i[1])
+        ctx.line_to(X_j[0], X_j[1])
+        ctx.stroke()
+
+    # draw nodes
+    if noderadius > 0 and nodeopacity > 0:
+        ctx.set_source_rgba(0,0,0,nodeopacity)
+        radius = noderadius * scale
+        for i in range(n):
+            ctx.arc(X_png[i][0], X_png[i][1], radius, 0, 7)
+            ctx.fill()
+
+    surface.write_to_png(filepath)
+
+
+def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1):
     """Takes a n-by-2 matrix of positions X and index pairs I and J
     and writes the equivalent picture in svg format.
     The drawing will be expanded into a width*width square
@@ -114,9 +152,10 @@ def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, b
     svg_list.append('<svg width="{:.0f}" height="{:.0f}" xmlns="http://www.w3.org/2000/svg">'.format(width, width))
     svg_list.append('<style type="text/css">')
     svg_list.append('line{{stroke:black;stroke-width:{:.3f};stroke-opacity:{:.3f};stroke-linecap:round;}}'.format(scale*linkwidth,linkopacity))
-    svg_list.append('circle{{r:{};fill:black}}'.format(scale*noderadius))
+    svg_list.append('circle{{r:{};fill:black;fill-opacity:{:.3f}}}'.format(scale*noderadius,nodeopacity))
     svg_list.append('</style>');
 
+    # draw links
     for ij in range(m):
         i = I[ij]
         j = J[ij]
@@ -124,8 +163,8 @@ def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, b
         X_j = X_svg[j]
         svg_list.append('<line x1="{:.1f}" x2="{:.1f}" y1="{:.1f}" y2="{:.1f}"/>'.format(X_i[0], X_j[0], X_i[1], X_j[1]));
 
+    # draw nodes
     if noderadius > 0:
-        # draw nodes
         for i in range(n):
             svg_list.append('<circle cx="{:.1f}" cy="{:.1f}"/>'.format(X_svg[i][0], X_svg[i][1]))
 
