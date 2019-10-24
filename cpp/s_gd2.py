@@ -50,17 +50,25 @@ def layout_sparse(I, J, npivots, V=None, t_max=30, eps=.01):
     return X
 
 
-def mds_direct(n, d, w, etas):
+def mds_direct(n, d, w, etas=None):
     """takes nC2 vectors d and w with a vector of step sizes eta
     and returns a n-by-2 matrix of positions X"""
 
-    # initialize positions
-    X = np.random.rand(n, 2)
     nC2 = (n*(n-1))/2
     if len(d) != nC2 or len(w) != nC2:
         raise "d and w are not correct length condensed distance matrices"
 
-    cpp.mds_direct(X, d, w, eta)
+    if etas is None:
+        eta_max = 1/min(w)
+        eta_min = .1/max(w)
+        lambd = np.log(eta_max / eta_min) / 14
+        etas = eta_max * np.exp(-lambd * np.arange(15))
+
+    # initialize positions
+    X = np.random.rand(n, 2)
+
+    # do mds
+    cpp.mds_direct(X, d, w, etas)
     return X
 
 
