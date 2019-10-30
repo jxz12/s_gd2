@@ -40,7 +40,7 @@ def layout_sparse(I, J, npivots, V=None, t_max=30, eps=.01):
     X = random_init(I, J)
 
     if (npivots > X.shape[0]):
-        raise "number of pivots exceeds number of vertices"
+        raise ValueError("number of pivots exceeds number of vertices")
 
     if V is None:
         cpp.layout_sparse_unweighted(X, I, J, npivots, t_max, eps);
@@ -56,7 +56,7 @@ def mds_direct(n, d, w, etas=None):
 
     nC2 = (n*(n-1))/2
     if len(d) != nC2 or len(w) != nC2:
-        raise "d and w are not correct length condensed distance matrices"
+        raise ValueError("d and w are not correct length condensed distance matrices")
 
     if etas is None:
         eta_max = 1/min(w)
@@ -77,7 +77,7 @@ def mds_direct(n, d, w, etas=None):
 
 def random_init(I, J):
     if len(I) != len(J):
-        raise "length of edge indices I and J not equal"
+        raise ValueError("length of edge indices I and J not equal")
 
     n = max(max(I), max(J)) + 1
     X = np.random.rand(n,2)
