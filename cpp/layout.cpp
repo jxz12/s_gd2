@@ -370,7 +370,7 @@ void mds_direct(int n, double* X, double* d, double* w, int t_max, double* eta)
     etas.reserve(t_max);
     for (int t=0; t<t_max; t++)
     {
-        etas.push_back(etas[t]);
+        etas.push_back(eta[t]);
     }
     
     sgd(X, terms, etas, 0);

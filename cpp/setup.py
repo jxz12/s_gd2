@@ -12,14 +12,13 @@ except AttributeError:
 _layout = Extension(
     name="_layout",
     sources=["layout.cpp", "sparse.cpp", "layout_wrap.cxx"],
-    headers=["layout.hpp"],
     extra_compile_args=["-std=c++11"],
     include_dirs=[numpy_include]
 )
 
 setup(
     name="s_gd2",
-    version="1.1",
+    version="1.2",
     author="Jonathan Zheng",
     author_email="jxz12@ic.ac.uk",
     url="https://www.github.com/jxz12/s_gd2",
