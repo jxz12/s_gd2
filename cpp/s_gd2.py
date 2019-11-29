@@ -3,12 +3,15 @@ import numpy as np
 
 __all__ = ['layout','layout_convergent','layout_sparse','mds_direct','draw_svg','draw_png']
 
-def layout(I, J, V=None, t_max=15, eps=.1):
+def layout(I, J, V=None, t_max=15, eps=.1, init=None, random_state=None):
     """takes a list of indices I and J
     and returns a n-by-2 matrix of positions X with minimized stress."""
 
     # initialize positions
-    X = random_init(I, J)
+    if init is not None:
+        X = init
+    else:
+        X = random_init(I, J, random_state)
     
     if V is None:
         cpp.layout_unweighted(X, I, J, t_max, eps)
@@ -16,13 +19,16 @@ def layout(I, J, V=None, t_max=15, eps=.1):
         cpp.layout_weighted(X, I, J, V, t_max, eps)
     return X
 
-def layout_convergent(I, J, V=None, t_max=30, eps=.1, delta=.03, t_maxmax=200):
+def layout_convergent(I, J, V=None, t_max=30, eps=.1, delta=.03, t_maxmax=200, init=None, random_state=None):
     """takes a list of indices I and J
     and returns a n-by-2 matrix of positions X with minimized stress
     at a guaranteed stationary point."""
 
     # initialize positions
-    X = random_init(I, J)
+    if init is not None:
+        X = init
+    else:
+        X = random_init(I, J, random_state)
 
     if V is None:
         cpp.layout_unweighted_convergent(X, I, J, t_max, eps, delta, t_maxmax)
@@ -31,16 +37,19 @@ def layout_convergent(I, J, V=None, t_max=30, eps=.1, delta=.03, t_maxmax=200):
 
     return X
 
-def layout_sparse(I, J, npivots, V=None, t_max=30, eps=.01):
+def layout_sparse(I, J, npivots, V=None, t_max=30, eps=.01, init=None, random_state=None):
     """takes a list of indices I and J
     and returns a n-by-2 matrix of positions X with minimized stress
     using the sparse approximation of Ortmann et al. (2017)"""
 
     # initialize positions
-    X = random_init(I, J)
+    if init is not None:
+        X = init
+    else:
+        X = random_init(I, J, random_state)
 
     if (npivots > X.shape[0]):
-        raise "number of pivots exceeds number of vertices"
+        raise ValueError("number of pivots exceeds number of vertices")
 
     if V is None:
         cpp.layout_sparse_unweighted(X, I, J, npivots, t_max, eps);
@@ -50,28 +59,41 @@ def layout_sparse(I, J, npivots, V=None, t_max=30, eps=.01):
     return X
 
 
-def mds_direct(n, d, w, etas):
+def mds_direct(n, d, w, etas=None, init=None, random_state=None):
     """takes nC2 vectors d and w with a vector of step sizes eta
     and returns a n-by-2 matrix of positions X"""
 
-    # initialize positions
-    X = np.random.rand(n, 2)
     nC2 = (n*(n-1))/2
     if len(d) != nC2 or len(w) != nC2:
-        raise "d and w are not correct length condensed distance matrices"
+        raise ValueError("d and w are not correct length condensed distance matrices")
 
-    cpp.mds_direct(X, d, w, eta)
+    if etas is None:
+        eta_max = 1/min(w)
+        eta_min = .1/max(w)
+        lambd = np.log(eta_max / eta_min) / 14
+        etas = eta_max * np.exp(-lambd * np.arange(15))
+
+    np.random.seed(random_state)
+    # initialize positions
+    if init is not None:
+        X = init
+    else:
+        X = np.random.rand(n, 2)
+
+    # do mds
+    cpp.mds_direct(X, d, w, etas)
     return X
 
 
 
 ### no c++ bindings for functions below ###
 
-def random_init(I, J):
+def random_init(I, J, random_state=None):
     if len(I) != len(J):
-        raise "length of edge indices I and J not equal"
+        raise ValueError("length of edge indices I and J not equal")
 
     n = max(max(I), max(J)) + 1
+    np.random.seed(random_state)
     X = np.random.rand(n,2)
     return X
 
