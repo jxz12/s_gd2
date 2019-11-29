@@ -25,6 +25,6 @@ setup(
     url="https://www.github.com/jxz12/s_gd2",
     description="A package for performing stochastic gradient descent (arXiv:1710.04626) to layout graphs",
     install_requires=['numpy', 'pycairo'],
-    packages=['s_gd2'],
+    packages=find_packages(),
     ext_modules=[_layout]
 )
