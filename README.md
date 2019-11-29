@@ -19,7 +19,7 @@ s_gd2.draw_svg(X, I, J, 'C5.svg')
 
 Useful functions include the following:
 ```python
-layout(I, J, V=None, t_max=30, eps=.-1, random_seed=None, init=None)
+layout(I, J, V=None, t_max=30, eps=.01, random_seed=None, init=None)
 ```
 takes two lists `I` and `J` as edge indices for a graph, and lays it out using stochastic gradient descent. If `V` is provided, the graph is treated as weighted. `t_max` and `eps` are parameters used to determine the running time of the algorithm, as in Section 2.1.1 of the paper. `random_seed` is an optional integer used to seed random number generation to produce the same layouts in multiple runs, and `init` may be used if an initial layout is provided.
 ```python
