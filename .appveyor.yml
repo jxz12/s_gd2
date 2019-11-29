@@ -48,7 +48,7 @@ build_script:
 test_script:
 - ps: cd cpp
 - cmd: |
-    pythom -m pip install -U .[test]
+    python -m pip install -U .[test]
     python setup.py test
 - ps: cd ..
 
