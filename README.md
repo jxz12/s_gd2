@@ -45,7 +45,20 @@ draws the same image as `draw_svg()` and has the same parameters, but uses the `
 
 
 ## Building from source
-To build the package from source, the easiest way is through python `setuptools`. Running `python setup.py` within the `/cpp/` folder should automatically build the code along with the C++ wrapper. If you wish to change the C++ API itself, then SWIG must be used to first reconstruct the `layout_wrap.cxx` and `layout.py` files inside the folder `/cpp/swig/`. This is done by moving to the folder and running `swig -python -c++ layout.i`, which automatically generates the two required files.
+To build the package from source, the easiest way is through Python `setuptools`. To install from source with precompiled C++ wrapper code:
+
+```shell
+git clone https://github.com/jxz12/s_gd2
+cd s_gd2/cpp
+python setup.py install
+```
+To recompile C++ wrappers (required if there are any API changes):
+```shell
+git clone https://github.com/jxz12/s_gd2
+cd s_gd2/cpp
+swig -python -c++ s_gd2/swig/layout.i
+python setup.py install
+```
 
 ## Code used for the paper
 The (old) code used for timing experiments in the paper is in C#, run as a command line application that takes paths as command line arguments: input .txt file, output stress trajectory, output .svg layout.
