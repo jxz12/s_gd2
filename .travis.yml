@@ -113,7 +113,6 @@ before_install:
 - |
   PY=python
   if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
-    export CXX=g++-4.9 CC=gcc-4.9;
     if [ $(echo "$PYTHON" | grep "^3\.") ]; then
       PY=python${PYTHON}
       curl https://bootstrap.pypa.io/get-pip.py | sudo -H $PY
@@ -133,6 +132,8 @@ install:
   cd cpp
   if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     swig -python -c++ s_gd2/swig/layout.i
+    # if code is up to date, nothing should have changed
+    git diff --exit-code
   fi
   $PIP install --user numpy
   $PIP install --user .
