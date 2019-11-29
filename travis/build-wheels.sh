@@ -3,12 +3,8 @@ set -e -x
 
 # Auditwheel requirements
 yum install -y atlas-devel
-# nmslib requirements
-yum install -y gsl-devel
-yum install -y boost-devel
-yum install -y eigen3-devel
 
-OUT_DIR=/io/python_bindings/dist/
+OUT_DIR=/io/cpp/dist/
 mkdir -p "${OUT_DIR}"
 for PYBIN in /opt/python/*/bin; do
     # Select python version corresponding to this test
@@ -23,7 +19,7 @@ for PYBIN in /opt/python/*/bin; do
     mkdir -p $REPAIR_DIR
 
     # Compile wheels
-    cd /io/python_bindings
+    cd /io/cpp
     "${PYBIN}/pip" install numpy
     "${PYBIN}/pip" wheel . -w "${TMP_DIR}"
 
