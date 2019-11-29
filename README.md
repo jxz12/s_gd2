@@ -30,9 +30,9 @@ draw_png(X, I, J, filepath, noderadius=.2, linkwidth=.05, framewidth=1000, borde
 ```
 This function draws the same image as `draw_svg()` and has the same parameters, but uses the `pycairo` library to draw it directly onto a .png file. This function is especially useful when drawing large graphs, as the equivalent .svg files can become too large to render in common web browsers.
 ```python
-mds_direct(n, d, w, etas)
+mds_direct(n, d, w, etas=None)
 ```
-This function directly optimises the stress function (Equation (1) in the paper) given n vertices, and condensed distance matrices `d` and `w` (see `scipy.spatial.distance.squareform`). The step sizes are given as input `etas`.
+This function directly optimises the stress function (Equation (1) in the paper) given n vertices, and condensed distance matrices `d` and `w` (see `scipy.spatial.distance.squareform`). The step sizes are given as input `etas`, which defaults to the same schedule as `layout()` if not provided.
 
 ## Code used for the paper
 The (old) code used for timing experiments in the paper is in C#, run as a command line application that takes paths as command line arguments: input .txt file, output stress trajectory, output .svg layout.

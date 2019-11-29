@@ -1,2 +1,2 @@
-include layout.hpp
 include LICENSE
+recursive-include s_gd2 *.hpp *.py
