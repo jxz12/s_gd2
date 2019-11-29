@@ -23,7 +23,6 @@ matrix:
       apt:
         update: true
         sources:
-        - ubuntu-toolchain-r-test
         - deadsnakes
         packages:
           - *core_build
@@ -37,7 +36,6 @@ matrix:
       apt:
         update: true
         sources:
-        - ubuntu-toolchain-r-test
         - deadsnakes
         packages:
         - *core_build
@@ -51,7 +49,6 @@ matrix:
       apt:
         update: true
         sources:
-        - ubuntu-toolchain-r-test
         - deadsnakes
         packages:
         - *core_build
@@ -65,7 +62,6 @@ matrix:
       apt:
         update: true
         sources:
-        - ubuntu-toolchain-r-test
         - deadsnakes
         packages:
         - *core_build
