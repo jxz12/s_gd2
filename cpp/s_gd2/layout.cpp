@@ -6,6 +6,7 @@
 #include <limits>
 #include <cmath>
 #include <random>
+#include <exception>
 
 // for testing
 #include <chrono>
@@ -70,7 +71,7 @@ vector<vector<int>> build_graph_unweighted(int n, int m, int* I, int* J)
     {
         int i = I[ij], j = J[ij];
         if (i >= n || j >= n)
-            throw "i or j bigger than n";
+            throw std::invalid_argument("i or j bigger than n");
 
         if (i != j && undirected[j].find(i) == undirected[j].end()) // if edge not seen
         {
@@ -93,7 +94,7 @@ vector<term> bfs(int n, int m, int* I, int* J)
     vector<term> terms;
     terms.reserve(nC2);
 
-    int terms_size_goal = 0; // to keep track of when to stop searching i<j
+    unsigned terms_size_goal = 0; // to keep track of when to stop searching i<j
 
     for (int source=0; source<n-1; source++) // no need to do final vertex because i<j
     {
@@ -127,7 +128,7 @@ vector<term> bfs(int n, int m, int* I, int* J)
         }
         if (terms.size() != terms_size_goal)
         {
-            throw "graph is not strongly connected, or is not indexed from zero";
+            throw std::invalid_argument("graph is not strongly connected, or is not indexed from zero");
         }
     }
     return terms;
@@ -144,11 +145,11 @@ vector<vector<edge>> build_graph_weighted(int n, int m, int* I, int* J, double* 
     {
         int i = I[ij], j = J[ij];
         if (i >= n || j >= n)
-            throw "i or j bigger than n";
+            throw std::invalid_argument("i or j bigger than n");
 
         double v = V[ij];
         if (v <= 0)
-            throw "v less or equal 0";
+            throw std::invalid_argument("edge length less than or equal to 0");
 
         if (i != j && undirected[j].find(i) == undirected[j].end()) // if key not there
         {
@@ -160,7 +161,7 @@ vector<vector<edge>> build_graph_weighted(int n, int m, int* I, int* J, double* 
         else
         {
             if (undirected[j][i] != v)
-                throw "graph weights not symmetric";
+                throw std::invalid_argument("graph edge lengths not symmetric");
         }
     }
     return graph;
@@ -176,7 +177,7 @@ vector<term> dijkstra(int n, int m, int* I, int* J, double* V)
     vector<term> terms;
     terms.reserve(nC2);
 
-    int terms_size_goal = 0; // to keep track of when to stop searching i<j
+    unsigned terms_size_goal = 0; // to keep track of when to stop searching i<j
 
     for (int source=0; source<n-1; source++) // no need to do final vertex because i<j
     {
@@ -223,7 +224,7 @@ vector<term> dijkstra(int n, int m, int* I, int* J, double* V)
         }
         if (terms.size() != terms_size_goal)
         {
-            throw "graph is not strongly connected, or is not indexed from zero";
+            throw std::invalid_argument("graph is not strongly connected, or is not indexed from zero");
         }
     }
     return terms;
@@ -233,7 +234,7 @@ vector<term> dijkstra(int n, int m, int* I, int* J, double* V)
 vector<double> schedule(const vector<term> &terms, int t_max, double eps)
 {
     double w_min = terms[0].w, w_max = terms[0].w;
-    for (int i=1; i<terms.size(); i++)
+    for (unsigned i=1; i<terms.size(); i++)
     {
         double w = terms[i].w;
         if (w < w_min) w_min = w;
@@ -256,7 +257,7 @@ vector<double> schedule(const vector<term> &terms, int t_max, double eps)
 vector<double> schedule_convergent(const vector<term> &terms, int t_max, double eps, int t_maxmax)
 {
     double w_min = terms[0].w, w_max = terms[0].w;
-    for (int i=1; i<terms.size(); i++)
+    for (unsigned i=1; i<terms.size(); i++)
     {
         double w = terms[i].w;
         if (w < w_min) w_min = w;
@@ -291,63 +292,35 @@ vector<double> schedule_convergent(const vector<term> &terms, int t_max, double 
 
 void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, double eps, int seed)
 {
-    try
-    {
-        //auto start = std::chrono::steady_clock::now();
+    //auto start = std::chrono::steady_clock::now();
 
-        vector<term> terms = bfs(n, m, I, J);
-        //auto end = std::chrono::steady_clock::now();
-        //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() << "ms" << std::endl;
+    vector<term> terms = bfs(n, m, I, J);
+    //auto end = std::chrono::steady_clock::now();
+    //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() << "ms" << std::endl;
 
-        vector<double> etas = schedule(terms, t_max, eps);
-        sgd(X, terms, etas);
-        //end = std::chrono::steady_clock::now();
-        //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() << "ms" << std::endl;
-    }
-    catch (const char* msg)
-    {
-        std::cerr << "Error: " << msg << std::endl;
-    }
+    vector<double> etas = schedule(terms, t_max, eps);
+    sgd(X, terms, etas);
+    //end = std::chrono::steady_clock::now();
+    //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() << "ms" << std::endl;
 }
 
 void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, int seed)
 {
-    try
-    {
-        vector<term> terms = dijkstra(n, m, I, J, V);
-        vector<double> etas = schedule(terms, t_max, eps);
-        sgd(X, terms, etas);
-    }
-    catch (const char* msg)
-    {
-        std::cerr << "Error: " << msg << std::endl;
-    }
+    vector<term> terms = dijkstra(n, m, I, J, V);
+    vector<double> etas = schedule(terms, t_max, eps);
+    sgd(X, terms, etas);
 }
 void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax, int seed)
 {
-    try
-    {
-        vector<term> terms = bfs(n, m, I, J);
-        vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
-        sgd(X, terms, etas, delta);
-    } 
-    catch (const char* msg)
-    {
-        std::cerr << "Error: " << msg << std::endl;
-    }
+    vector<term> terms = bfs(n, m, I, J);
+    vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
+    sgd(X, terms, etas, delta);
 }
 void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax, int seed)
 {
-    try
-    {
-        vector<term> terms = dijkstra(n, m, I, J, V);
-        vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
-        sgd(X, terms, etas, delta);
-    }
-    catch (const char* msg)
-    {
-        std::cerr << "Error: " << msg << std::endl;
-    }
+    vector<term> terms = dijkstra(n, m, I, J, V);
+    vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
+    sgd(X, terms, etas, delta);
 }
 
 // d and w should be condensed distance matrices

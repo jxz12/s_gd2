@@ -9,8 +9,6 @@
     import_array();
 %}
 
-
-
 // vertex positions
 %apply (double* INPLACE_ARRAY2, int DIM1, int DIM2){(double* X, int n, int kd)}
 
@@ -23,45 +21,69 @@
 %apply (double* IN_ARRAY1, int DIM1){(double* d, int len_d),
                                      (double* w, int len_w),
                                      (double* eta, int len_eta)}
+
 #include "../layout.hpp"
 
+%include exception.i
 %rename (layout_unweighted) np_layout_unweighted;
 %exception np_layout_unweighted {
-    $action
-    if (PyErr_Occurred()) SWIG_fail;
+    try {
+        $action
+    } catch (std::invalid_argument e) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+    }
 }
 %rename (layout_weighted) np_layout_weighted;
 %exception np_layout_weighted {
-    $action
-    if (PyErr_Occurred()) SWIG_fail;
+    try {
+        $action
+    } catch (std::invalid_argument e) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+    }
 }
 %rename (layout_unweighted_convergent) np_layout_unweighted_convergent;
 %exception np_layout_unweighted_convergent {
-    $action
-    if (PyErr_Occurred()) SWIG_fail;
+    try {
+        $action
+    } catch (std::invalid_argument e) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+    }
 }
 %rename (layout_weighted_convergent) np_layout_weighted_convergent;
 %exception np_layout_weighted_convergent {
-    $action
-    if (PyErr_Occurred()) SWIG_fail;
+    try {
+        $action
+    } catch (std::invalid_argument e) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+    }
 }
 
 %rename (layout_sparse_unweighted) np_layout_sparse_unweighted;
 %exception np_layout_sparse_unweighted {
-    $action
-    if (PyErr_Occurred()) SWIG_fail;
+    try {
+        $action
+    } catch (std::invalid_argument e) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+    }
 }
 %rename (layout_sparse_weighted) np_layout_sparse_weighted;
 %exception np_layout_sparse_weighted {
-    $action
-    if (PyErr_Occurred()) SWIG_fail;
+    try {
+        $action
+    } catch (std::invalid_argument e) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+    }
 }
 
 %rename (mds_direct) np_mds_direct;
 %exception np_mds_direct {
-    $action
-    if (PyErr_Occurred()) SWIG_fail;
+    try {
+        $action
+    } catch (std::invalid_argument e) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+    }
 }
+
 
 %inline %{
     void dimension_check(int kd) {

@@ -3,19 +3,18 @@ import numpy as np
 
 __all__ = ['layout','layout_convergent','layout_sparse','mds_direct','draw_svg','draw_png']
 
-def layout(I, J, V=None, t_max=30, eps=.01, init=None, random_seed=None):
+def layout(I, J, V=None, t_max=30, eps=.01, random_seed=None, init=None):
     """takes a list of indices I and J
     and returns a n-by-2 matrix of positions X with minimized stress."""
+
+    if len(I) == 0 or len(I) != len(J):
+        raise ValueError("length of edge indices I and J not equal or zero")
 
     # seed random state
     if random_seed is None:
         random_seed = np.random.randint(65536)
 
-    # initialize positions
-    if init is not None:
-        X = init
-    else:
-        X = random_init(I, J, random_seed)
+    X = random_init(I, J, random_seed, init)
     
     if V is None:
         cpp.layout_unweighted(X, I, J, t_max, eps, random_seed)
@@ -23,20 +22,19 @@ def layout(I, J, V=None, t_max=30, eps=.01, init=None, random_seed=None):
         cpp.layout_weighted(X, I, J, V, t_max, eps, random_seed)
     return X
 
-def layout_convergent(I, J, V=None, t_max=30, eps=.01, delta=.03, t_maxmax=200, init=None, random_seed=None):
+def layout_convergent(I, J, V=None, t_max=30, eps=.01, delta=.03, t_maxmax=200, random_seed=None, init=None):
     """takes a list of indices I and J
     and returns a n-by-2 matrix of positions X with minimized stress
     at a guaranteed stationary point."""
+
+    if len(I) == 0 or len(I) != len(J):
+        raise ValueError("length of edge indices I and J not equal or zero")
 
     # seed random state
     if random_seed is None:
         random_seed = np.random.randint(65536)
 
-    # initialize positions
-    if init is not None:
-        X = init
-    else:
-        X = random_init(I, J, random_seed)
+    X = random_init(I, J, random_seed, init)
 
     if V is None:
         cpp.layout_unweighted_convergent(X, I, J, t_max, eps, delta, t_maxmax, random_seed)
@@ -45,7 +43,7 @@ def layout_convergent(I, J, V=None, t_max=30, eps=.01, delta=.03, t_maxmax=200, 
 
     return X
 
-def layout_sparse(I, J, npivots, V=None, t_max=30, eps=.01, init=None, random_seed=None):
+def layout_sparse(I, J, npivots, V=None, t_max=30, eps=.01, random_seed=None, init=None):
     """takes a list of indices I and J
     and returns a n-by-2 matrix of positions X with minimized stress
     using the sparse approximation of Ortmann et al. (2017)"""
@@ -54,11 +52,7 @@ def layout_sparse(I, J, npivots, V=None, t_max=30, eps=.01, init=None, random_se
     if random_seed is None:
         random_seed = np.random.randint(65536)
 
-    # initialize positions
-    if init is not None:
-        X = init
-    else:
-        X = random_init(I, J, random_state)
+    X = random_init(I, J, random_seed, init)
 
     if (npivots > X.shape[0]):
         raise ValueError("number of pivots exceeds number of vertices")
@@ -71,23 +65,28 @@ def layout_sparse(I, J, npivots, V=None, t_max=30, eps=.01, init=None, random_se
     return X
 
 
-def mds_direct(n, d, w, etas=None, init=None, random_seed=None):
-    """takes nC2 vectors d and w with a vector of step sizes eta
+def mds_direct(n, d, w=None, etas=None, random_seed=None, init=None):
+    """takes nC2 vectors d (distance) and w (weight) with a vector of step sizes eta
     and returns a n-by-2 matrix of positions X"""
 
     nC2 = (n*(n-1))/2
     if len(d) != nC2 or len(w) != nC2:
         raise ValueError("d and w are not correct length condensed distance matrices")
 
+    if w is None:
+        w = np.ones(d) # standard metric MDS
+
+    if etas is None:
+        etas = default_schedule(w)
+
     # seed random state
     if random_seed is None:
         random_seed = np.random.randint(65536)
-    
-    if etas is None:
-        etas = schedule(w)
 
     # initialize positions
     if init is not None:
+        if len(init) != n:
+            raise ValueError("initial layout has incorrect shape")
         X = init
     else:
         np.random.seed(random_seed)
@@ -97,7 +96,7 @@ def mds_direct(n, d, w, etas=None, init=None, random_seed=None):
     cpp.mds_direct(X, d, w, etas, random_seed)
     return X
 
-def schedule(w, t_max=30, eps=.01):
+def default_schedule(w, t_max=30, eps=.01):
     eta_max = 1/min(w)
     eta_min = eps/max(w)
     lambd = np.log(eta_max / eta_min) / (t_max-1)
@@ -105,22 +104,29 @@ def schedule(w, t_max=30, eps=.01):
     return etas
 
 
-
 ### no c++ bindings for functions below ###
 
-def random_init(I, J, random_seed=None):
-    if len(I) != len(J):
-        raise ValueError("length of edge indices I and J not equal")
+def random_init(I, J, random_seed, init=None):
+    if len(I) == 0 or len(I) != len(J):
+        raise ValueError("length of edge indices I and J not equal or zero")
 
     n = max(max(I), max(J)) + 1
-    np.random.seed(random_seed)
-    X = np.random.rand(n,2)
+
+    # initialize positions
+    if init is not None:
+        if len(init) != n:
+            raise ValueError("initial layout has incorrect shape")
+        X = init
+    else:
+        np.random.seed(random_seed)
+        X = np.random.rand(n,2)
+
     return X
 
 
 def draw_png(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1):
     """Takes a n-by-2 matrix of positions X and index pairs I and J
-    and draws it to a .png file, using the Pillow library."""
+    and draws it to a .png file, using the PyCairo library."""
 
     n = len(X)
     m = len(I)

@@ -3001,6 +3001,9 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 
 
 
+  #define SWIG_exception(code, msg) do { SWIG_Error(code, msg); SWIG_fail;; } while(0) 
+
+
 /* -------- TYPES TABLE (BEGIN) -------- */
 
 #define SWIGTYPE_p_char swig_types[0]
@@ -4016,8 +4019,11 @@ SWIGINTERN PyObject *_wrap_layout_unweighted(PyObject *SWIGUNUSEDPARM(self), PyO
   } 
   arg10 = static_cast< int >(val10);
   {
-    np_layout_unweighted(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
-    if (PyErr_Occurred()) SWIG_fail;
+    try {
+      np_layout_unweighted(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
+    } catch (std::invalid_argument e) {
+      SWIG_exception(SWIG_RuntimeError, e.what());
+    }
   }
   resultobj = SWIG_Py_Void();
   {
@@ -4146,8 +4152,11 @@ SWIGINTERN PyObject *_wrap_layout_weighted(PyObject *SWIGUNUSEDPARM(self), PyObj
   } 
   arg12 = static_cast< int >(val12);
   {
-    np_layout_weighted(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
-    if (PyErr_Occurred()) SWIG_fail;
+    try {
+      np_layout_weighted(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
+    } catch (std::invalid_argument e) {
+      SWIG_exception(SWIG_RuntimeError, e.what());
+    }
   }
   resultobj = SWIG_Py_Void();
   {
@@ -4289,8 +4298,11 @@ SWIGINTERN PyObject *_wrap_layout_unweighted_convergent(PyObject *SWIGUNUSEDPARM
   } 
   arg12 = static_cast< int >(val12);
   {
-    np_layout_unweighted_convergent(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
-    if (PyErr_Occurred()) SWIG_fail;
+    try {
+      np_layout_unweighted_convergent(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
+    } catch (std::invalid_argument e) {
+      SWIG_exception(SWIG_RuntimeError, e.what());
+    }
   }
   resultobj = SWIG_Py_Void();
   {
@@ -4437,8 +4449,11 @@ SWIGINTERN PyObject *_wrap_layout_weighted_convergent(PyObject *SWIGUNUSEDPARM(s
   } 
   arg14 = static_cast< int >(val14);
   {
-    np_layout_weighted_convergent(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
-    if (PyErr_Occurred()) SWIG_fail;
+    try {
+      np_layout_weighted_convergent(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
+    } catch (std::invalid_argument e) {
+      SWIG_exception(SWIG_RuntimeError, e.what());
+    }
   }
   resultobj = SWIG_Py_Void();
   {
@@ -4571,8 +4586,11 @@ SWIGINTERN PyObject *_wrap_layout_sparse_unweighted(PyObject *SWIGUNUSEDPARM(sel
   } 
   arg11 = static_cast< int >(val11);
   {
-    np_layout_sparse_unweighted(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
-    if (PyErr_Occurred()) SWIG_fail;
+    try {
+      np_layout_sparse_unweighted(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
+    } catch (std::invalid_argument e) {
+      SWIG_exception(SWIG_RuntimeError, e.what());
+    }
   }
   resultobj = SWIG_Py_Void();
   {
@@ -4710,8 +4728,11 @@ SWIGINTERN PyObject *_wrap_layout_sparse_weighted(PyObject *SWIGUNUSEDPARM(self)
   } 
   arg13 = static_cast< int >(val13);
   {
-    np_layout_sparse_weighted(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
-    if (PyErr_Occurred()) SWIG_fail;
+    try {
+      np_layout_sparse_weighted(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13);
+    } catch (std::invalid_argument e) {
+      SWIG_exception(SWIG_RuntimeError, e.what());
+    }
   }
   resultobj = SWIG_Py_Void();
   {
@@ -4834,8 +4855,11 @@ SWIGINTERN PyObject *_wrap_mds_direct(PyObject *SWIGUNUSEDPARM(self), PyObject *
   } 
   arg10 = static_cast< int >(val10);
   {
-    np_mds_direct(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
-    if (PyErr_Occurred()) SWIG_fail;
+    try {
+      np_mds_direct(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10);
+    } catch (std::invalid_argument e) {
+      SWIG_exception(SWIG_RuntimeError, e.what());
+    }
   }
   resultobj = SWIG_Py_Void();
   {

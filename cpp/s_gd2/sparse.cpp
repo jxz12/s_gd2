@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <limits>
 #include <random>
+#include <exception>
 
 // for debug and test
 #include <chrono>
@@ -72,7 +73,7 @@ vector<int> maxmin_random_sp_unweighted(const vector<vector<int>>& graph, int n_
     for (int i = 0; i < n; i++)
     {
         if (argmins[i] == -1)
-            throw "graph is not strongly connected, or is not indexed from zero";
+            throw std::invalid_argument("graph has multiple connected components");
     }
 
     // remaining pivots
@@ -114,7 +115,6 @@ vector<int> maxmin_random_sp_unweighted(const vector<vector<int>>& graph, int n_
         argmins[argmax] = argmax;
         maxmin_bfs_unweighted(graph, argmax, mins, argmins);
     }
-    // TODO: look for error in bfs here
     return argmins;
 }
 void maxmin_bfs_unweighted(const vector<vector<int>>& graph, const int p, vector<int>& mins, vector<int>& argmins)
@@ -267,7 +267,7 @@ vector<int> maxmin_random_sp_weighted(const vector<vector<edge>>& graph, int n_p
     for (int i = 0; i < n; i++)
     {
         if (argmins[i] == -1)
-            throw "graph has more than one connected component";
+            throw std::invalid_argument("graph has multiple connected components");
     }
 
     // remaining pivots
@@ -505,49 +505,19 @@ vector<double> schedule(const vector<term_sparse> &terms, int t_max, double eps)
 
 void layout_sparse_unweighted(int n, double* X, int m, int* I, int* J, int p, int t_max, double eps, int seed)
 {
-    try
-    {
-        vector<vector<int>> g = build_graph_unweighted(n, m, I, J);
+    vector<vector<int>> g = build_graph_unweighted(n, m, I, J);
 
-        auto closest_pivots = maxmin_random_sp_unweighted(g, p, 0);
-        auto terms = MSSP_unweighted(g, closest_pivots);
-        auto etas = schedule(terms, t_max, eps);
-        sgd(X, terms, etas, seed);
-    }
-    catch (const char* msg)
-    {
-        std::cerr << "Error: " << msg << std::endl;
-    }
+    auto closest_pivots = maxmin_random_sp_unweighted(g, p, 0);
+    auto terms = MSSP_unweighted(g, closest_pivots);
+    auto etas = schedule(terms, t_max, eps);
+    sgd(X, terms, etas, seed);
 }
 void layout_sparse_weighted(int n, double* X, int m, int* I, int* J, double* V, int p, int t_max, double eps, int seed)
 {
-    try
-    {
-        vector<vector<edge>> g = build_graph_weighted(n, m, I, J, V);
+    vector<vector<edge>> g = build_graph_weighted(n, m, I, J, V);
 
-        auto closest_pivots = maxmin_random_sp_weighted(g, p, 0);
-        auto terms = MSSP_weighted(g, closest_pivots);
-        auto etas = schedule(terms, t_max, eps);
-        sgd(X, terms, etas, seed);
-    }
-    catch (const char* msg)
-    {
-        std::cerr << "Error: " << msg << std::endl;
-    }
-}
-
-int main()
-{
-    try
-    {
-        int I[8] = { 0,0,1,2,4,4,5,6 };
-        int J[8] = { 1,2,3,3,5,6,7,7 };
-        double V[8] = { 1,1,9,9,1,1,1,1 };
-        vector<vector<edge>> g = build_graph_weighted(8, 8, I, J, V);
-        auto closest_pivots = maxmin_random_sp_weighted(g, 2, 0);
-    }
-    catch (const char* msg)
-    {
-        std::cerr << "Error: " << msg << std::endl;
-    }
+    auto closest_pivots = maxmin_random_sp_weighted(g, p, 0);
+    auto terms = MSSP_weighted(g, closest_pivots);
+    auto etas = schedule(terms, t_max, eps);
+    sgd(X, terms, etas, seed);
 }
