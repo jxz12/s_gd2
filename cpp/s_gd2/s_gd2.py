@@ -1,7 +1,7 @@
 from .swig import layout as cpp
 import numpy as np
 
-__all__ = ['layout','layout_convergent','layout_sparse','mds_direct','draw_svg','draw_png']
+__all__ = ['layout','layout_convergent','layout_sparse','mds_direct','default_schedule','draw_svg','draw_png']
 
 def layout(I, J, V=None, t_max=30, eps=.01, random_seed=None, init=None):
     """takes a list of indices I and J
