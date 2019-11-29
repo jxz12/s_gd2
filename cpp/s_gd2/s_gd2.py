@@ -87,7 +87,7 @@ def mds_direct(n, d, w=None, etas=None, random_seed=None, init=None):
     if init is not None:
         if len(init) != n:
             raise ValueError("initial layout has incorrect shape")
-        X = init
+        X = np.ascontiguousarray(init)
     else:
         np.random.seed(random_seed)
         X = np.random.rand(n, 2)
