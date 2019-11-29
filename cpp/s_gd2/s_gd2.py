@@ -1,4 +1,4 @@
-import swig.layout as cpp
+from .swig import layout as cpp
 import numpy as np
 
 __all__ = ['layout','layout_convergent','layout_sparse','mds_direct','draw_svg','draw_png']

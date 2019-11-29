@@ -503,7 +503,7 @@ vector<double> schedule(const vector<term_sparse> &terms, int t_max, double eps)
 }
 
 
-void layout_sparse_unweighted(int n, double* X, int m, int* I, int* J, int p, int t_max, double eps)
+void layout_sparse_unweighted(int n, double* X, int m, int* I, int* J, int p, int t_max, double eps, int seed)
 {
     try
     {
@@ -512,14 +512,14 @@ void layout_sparse_unweighted(int n, double* X, int m, int* I, int* J, int p, in
         auto closest_pivots = maxmin_random_sp_unweighted(g, p, 0);
         auto terms = MSSP_unweighted(g, closest_pivots);
         auto etas = schedule(terms, t_max, eps);
-        sgd(X, terms, etas);
+        sgd(X, terms, etas, seed);
     }
     catch (const char* msg)
     {
         std::cerr << "Error: " << msg << std::endl;
     }
 }
-void layout_sparse_weighted(int n, double* X, int m, int* I, int* J, double* V, int p, int t_max, double eps)
+void layout_sparse_weighted(int n, double* X, int m, int* I, int* J, double* V, int p, int t_max, double eps, int seed)
 {
     try
     {
@@ -528,7 +528,7 @@ void layout_sparse_weighted(int n, double* X, int m, int* I, int* J, double* V, 
         auto closest_pivots = maxmin_random_sp_weighted(g, p, 0);
         auto terms = MSSP_weighted(g, closest_pivots);
         auto etas = schedule(terms, t_max, eps);
-        sgd(X, terms, etas);
+        sgd(X, terms, etas, seed);
     }
     catch (const char* msg)
     {
