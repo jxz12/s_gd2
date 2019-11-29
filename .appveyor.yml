@@ -26,7 +26,7 @@ install:
       if ($env:PLATFORM -eq "x64") { $env:PYTHON = "$env:PYTHON-x64" }
       $env:PATH = "C:\Python$env:PYTHON\;C:\Python$env:PYTHON\Scripts\;$env:PATH"
       python -m pip install --disable-pip-version-check --upgrade pip
-      python -m pip install -qq setuptools six psutil numpy
+      python -m pip install -qq setuptools numpy
     } elseif ($env:CONDA) {
       if ($env:CONDA -eq "27") { $env:CONDA = "" }
       if ($env:PLATFORM -eq "x64") { $env:CONDA = "$env:CONDA-x64" }
@@ -47,7 +47,9 @@ build_script:
 
 test_script:
 - ps: cd cpp
-- cmd: python setup.py test
+- cmd: |
+    pythom -m pip install -U .[test]
+    python setup.py test
 - ps: cd ..
 
 deploy_script: 
@@ -64,8 +66,7 @@ deploy_script:
     # Install wheel-building support
     python -m pip install --user wheel twine
     # Build wheel and upload
-    cd python_bindings
-    python setup.py build_ext
+    cd cpp
     python setup.py sdist bdist_wheel
     python -m twine upload -r pypi -p $env:pypipassword --skip-existing dist/*
     echo "Deployment complete"
