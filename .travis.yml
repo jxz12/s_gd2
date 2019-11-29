@@ -130,13 +130,11 @@ before_install:
 
 install:
 - |
+  cd cpp
   if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    cd cpp/swig
     swig -python -c++ s_gd2/swig/layout.i
-    cd ../..
   fi
   $PIP install --user numpy
-  cd cpp
   $PIP install --user .
   cd ..
 
