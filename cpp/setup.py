@@ -19,7 +19,7 @@ _layout = Extension(
 
 setup(
     name="s_gd2",
-    version="1.3",
+    version="1.4",
     author="Jonathan Zheng",
     author_email="jxz12@ic.ac.uk",
     url="https://www.github.com/jxz12/s_gd2",
