@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
 # Third-party modules - we depend on numpy for everything
@@ -11,20 +11,20 @@ except AttributeError:
 
 _layout = Extension(
     name="_layout",
-    sources=["layout.cpp", "sparse.cpp", "layout_wrap.cxx"],
+    headers=["./s_gd2/layout.hpp"],
+    sources=["./s_gd2/layout.cpp", "./s_gd2/sparse.cpp", "./s_gd2/swig/layout_wrap.cxx"],
     extra_compile_args=["-std=c++11"],
-    include_dirs=[numpy_include]
+    include_dirs=[numpy_include],
 )
 
 setup(
     name="s_gd2",
-    version="1.2",
+    version="1.3",
     author="Jonathan Zheng",
     author_email="jxz12@ic.ac.uk",
     url="https://www.github.com/jxz12/s_gd2",
     description="A package for performing stochastic gradient descent (arXiv:1710.04626) to layout graphs",
     install_requires=['numpy', 'pycairo'],
-    py_modules=['s_gd2', 'layout'],
+    packages=['s_gd2'],
     ext_modules=[_layout]
 )
-
