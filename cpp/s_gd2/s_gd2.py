@@ -69,12 +69,12 @@ def mds_direct(n, d, w=None, etas=None, random_seed=None, init=None):
     """takes nC2 vectors d (distance) and w (weight) with a vector of step sizes eta
     and returns a n-by-2 matrix of positions X"""
 
-    nC2 = (n*(n-1))/2
-    if len(d) != nC2 or len(w) != nC2:
-        raise ValueError("d and w are not correct length condensed distance matrices")
-
+    nC2 = int((n*(n-1))/2)
     if w is None:
-        w = np.ones(d) # standard metric MDS
+        w = np.ones(nC2) # standard metric MDS
+
+    if len(d) != nC2 or len(w) != nC2:
+        raise ValueError("d and/or w are not correct length condensed distance matrices")
 
     if etas is None:
         etas = default_schedule(w)
