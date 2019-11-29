@@ -1,7 +1,8 @@
 # s(gd)²
-Stochastic Gradient Descent for Graph Drawing [<https://arxiv.org/abs/1710.04626>]
+Stochastic Gradient Descent for Graph Drawing [[arXiv:1710.04626]](https://arxiv.org/abs/1710.04626). A video of the corresponding talk (given at IEEE VIS 2019) can be viewed at [vimeo.com/373015168](https://vimeo.com/373015168).
 
-![image](comparison.gif)
+![image](https://media.giphy.com/media/JoaboGdTq1sXNnnIND/giphy.gif)
+
 
 We recommend using the available python package, implemented in C++ using SWIG to generate bindings. It may be installed using
 ```
@@ -16,23 +17,35 @@ X = s_gd2.layout(I, J)
 s_gd2.draw_svg(X, I, J, 'C5.svg')
 ```
 
-Other useful functions include the following:
+Useful functions include the following:
 ```python
-layout_convergent(I, J, V=None, t_max=30, eps=.1, delta=.03, t_maxmax=200)
+layout(I, J, V=None, t_max=30, eps=.-1, random_seed=None, init=None)
 ```
-This function implements the convergent schedule from the paper, Section 2.1.2. If `V` is provided, the graph is treated as weighted (same as the non-convergent case). It produces layouts that are slightly tidier than `layout()`, but requires more iterations. `t_maxmax` is a maximum iteration regardless of delta.
+takes two lists `I` and `J` as edge indices for a graph, and lays it out using stochastic gradient descent. If `V` is provided, the graph is treated as weighted. `t_max` and `eps` are parameters used to determine the running time of the algorithm, as in Section 2.1.1 of the paper. `random_seed` is an optional integer used to seed random number generation to produce the same layouts in multiple runs, and `init` may be used if an initial layout is provided.
 ```python
-layout_sparse(I, J, npivots, V=None, t_max=30, eps=.01)
+layout_convergent(I, J, V=None, t_max=30, eps=.01, delta=.03, t_maxmax=200, random_seed=None, init=None)
 ```
-This is an implementation of the sparse stress approximation of Ortmann et al. (2017), described in Section 4.3 in the paper. It allows the algorithm to draw large graphs of up to millions of vertices, by strategically cutting terms from the loss function. A standard value for `npivots` is 200.
+implements the convergent schedule from the paper, Section 2.1.2. It produces layouts that are slightly tidier than `layout()`, but requires more iterations. `t_maxmax` is a maximum iteration regardless of the stopping threshold `delta`.
+```python
+layout_sparse(I, J, npivots, V=None, t_max=30, eps=.01, random_seed=None, init=None)
+```
+is an implementation of the sparse stress approximation of Ortmann et al. (2017), described in Section 4.3 in the paper. It allows the algorithm to draw large graphs of up to millions of vertices, by strategically cutting terms from the loss function. A standard value for `npivots` is 200.
+```python
+mds_direct(n, d, w=None, etas=None, random_seed=None, init=None)
+```
+directly optimises the stress function (Equation (1) in the paper) given n vertices, and condensed distance matrices `d` and `w` (see `scipy.spatial.distance.squareform`). If `w` is not provided, it is initialised to an array full of 1s. If `etas` is not provided, it defaults to the same schedule as used in `layout()`.
+```python
+draw_svg(X, I, J, filepath, noderadius=.2, linkwidth=.05, framewidth=1000, border=50, nodeopacity=1, linkopacity=1)
+```
+renders a given layout into .svg format.
 ```python
 draw_png(X, I, J, filepath, noderadius=.2, linkwidth=.05, framewidth=1000, border=50, nodeopacity=1, linkopacity=1)
 ```
-This function draws the same image as `draw_svg()` and has the same parameters, but uses the `pycairo` library to draw it directly onto a .png file. This function is especially useful when drawing large graphs, as the equivalent .svg files can become too large to render in common web browsers.
-```python
-mds_direct(n, d, w, etas=None)
-```
-This function directly optimises the stress function (Equation (1) in the paper) given n vertices, and condensed distance matrices `d` and `w` (see `scipy.spatial.distance.squareform`). The step sizes are given as input `etas`, which defaults to the same schedule as `layout()` if not provided.
+draws the same image as `draw_svg()` and has the same parameters, but uses the `pycairo` library to draw it directly onto a .png file. This function is especially useful when drawing large graphs, as the equivalent .svg files can become too large to render in common web browsers.
+
+
+## Building from source
+To build the package from source, the easiest way is through python `setuptools`. Running `python setup.py` within the `/cpp/` folder should automatically build the code along with the C++ wrapper. If you wish to change the C++ API itself, then SWIG must be used to first reconstruct the `layout_wrap.cxx` and `layout.py` files inside the folder `/cpp/swig/`. This is done by moving to the folder and running `swig -python -c++ layout.i`, which automatically generates the two required files.
 
 ## Code used for the paper
 The (old) code used for timing experiments in the paper is in C#, run as a command line application that takes paths as command line arguments: input .txt file, output stress trajectory, output .svg layout.
