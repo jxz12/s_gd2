@@ -15,7 +15,7 @@ matrix:
   fast_finish: true
   include:
   - os: linux
-    dist: trusty
+    dist: bionic
     env: PYTHON=2.7
     services:
     - docker
@@ -30,7 +30,7 @@ matrix:
           - python2.7-dev
   - os: linux
     env: PYTHON=3.5
-    dist: trusty
+    dist: bionic
     services:
     - docker
     addons:
@@ -44,7 +44,7 @@ matrix:
         - python3.5-dev
   - os: linux
     env: PYTHON=3.6
-    dist: xenial
+    dist: bionic
     services:
     - docker
     addons:
@@ -58,7 +58,7 @@ matrix:
         - python3.6-dev
   - os: linux
     env: PYTHON=3.7
-    dist: xenial
+    dist: bionic
     services:
     - docker
     addons:
@@ -133,19 +133,17 @@ install:
   if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     swig -python -c++ s_gd2/swig/layout.i
     # if code is up to date, nothing should have changed
-    git diff --exit-code
   fi
   $PIP install --user numpy
   $PIP install --user .
   cd ..
+- git diff --exit-code
 
 script:
 - $PY --version
-- |
-  cd cpp
-  $PIP install --user .[test]
-  $PY setup.py test
-  cd ..
+- cd cpp && $PIP install --user .[test]
+- $PY setup.py test
+- cd ..
 
 after_script:
   - |
