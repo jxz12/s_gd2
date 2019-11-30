@@ -4,10 +4,12 @@ set -e -x
 # Auditwheel requirements
 yum install -y atlas-devel
 
-# Ensure README gets packaged
-mv /io/README.md /io/cpp/
+SOURCE_DIR="/io/cpp"
 
-OUT_DIR=/io/cpp/dist/
+# Ensure README gets packaged
+mv /io/README.md $SOURCE_DIR
+
+OUT_DIR="${SOURCE_DIR}/dist/"
 mkdir -p "${OUT_DIR}"
 for PYBIN in /opt/python/*/bin; do
     # Select python version corresponding to this test
@@ -16,13 +18,13 @@ for PYBIN in /opt/python/*/bin; do
     fi
 
     # Setup
-    TMP_DIR="wheelhouse_tmp/${PLAT}/${PYBIN}"
-    REPAIR_DIR="wheelhouse_repair/${PLAT}/${PYBIN}"
+    TMP_DIR="${SOURCE_DIR}/wheelhouse_tmp/${PLAT}/${PYBIN}"
+    REPAIR_DIR="${SOURCE_DIR}/wheelhouse_repair/${PLAT}/${PYBIN}"
     mkdir -p $TMP_DIR
     mkdir -p $REPAIR_DIR
 
     # Compile wheels
-    cd /io/cpp
+    cd $SOURCE_DIR
     "${PYBIN}/pip" install numpy
     "${PYBIN}/pip" wheel . -w "${TMP_DIR}"
 
@@ -34,7 +36,7 @@ for PYBIN in /opt/python/*/bin; do
 
     # Install and test
     "${PYBIN}/pip" install s_gd2 --no-index -f "${REPAIR_DIR}"
-    cd /io/cpp/
+    cd $SOURCE_DIR
     "${PYBIN}/pip" install .[test]
     "${PYBIN}/python" setup.py test
     cd ..
