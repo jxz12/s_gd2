@@ -6,8 +6,7 @@ git clean -fXd
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     # manylinux build
     echo "Building manylinux wheels with auditwheel and docker"
-    echo "Ignoring manylinux1_i686"
-    for PLAT in manylinux1_x86_64 manylinux2010_x86_64; do
+    for PLAT in manylinux1_x86_64 manylinux2010_x86_64 manylinux1_i686; do
         DOCKER_IMAGE=quay.io/pypa/$PLAT
         if [ "$PLAT" == "manylinux1_i686" ]; then
             PRE_CMD=linux32
