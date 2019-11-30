@@ -3,6 +3,10 @@
 set -x
 git clean -fxd
 git clean -fXd   
+
+# Ensure README gets packaged
+mv README.md cpp
+
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     # manylinux build
     echo "Building manylinux wheels with auditwheel and docker"
@@ -18,7 +22,6 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     done
 else
     # os x build
-    mv README.md cpp
     cd cpp
     $PIP install --user numpy twine setuptools wheel
     $PY setup.py sdist bdist_wheel

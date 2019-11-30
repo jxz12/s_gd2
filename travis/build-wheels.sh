@@ -7,9 +7,6 @@ yum install -y atlas-devel
 SOURCE_DIR="/io/cpp"
 PKG_NAME="s_gd2"
 
-# Ensure README gets packaged
-mv /io/README.md $SOURCE_DIR
-
 OUT_DIR="${SOURCE_DIR}/dist/"
 mkdir -p "${OUT_DIR}"
 for PYBIN in /opt/python/*/bin; do
