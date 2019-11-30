@@ -5,6 +5,7 @@ set -e -x
 yum install -y atlas-devel
 
 SOURCE_DIR="/io/cpp"
+PKG_NAME="s_gd2"
 
 # Ensure README gets packaged
 mv /io/README.md $SOURCE_DIR
@@ -35,18 +36,18 @@ for PYBIN in /opt/python/*/bin; do
     done
 
     # Install and test
-    "${PYBIN}/pip" install s_gd2 --no-index -f "${REPAIR_DIR}"
+    "${PYBIN}/pip" install $PKG_NAME --no-index -f "${REPAIR_DIR}"
     cd $SOURCE_DIR
     "${PYBIN}/pip" install .[test]
     "${PYBIN}/python" setup.py test
     cd ..
 
     # Clean up
-    "${PYBIN}/pip" uninstall -y s_gd2
+    "${PYBIN}/pip" uninstall -y $PKG_NAME
     rm -rf build
     
     # Move wheel to output directory
-    for whl in $(ls -1 ${REPAIR_DIR} | grep s_gd2); do
+    for whl in $(ls -1 ${REPAIR_DIR} | grep $PKG_NAME); do
       mv ${REPAIR_DIR}/$whl "${OUT_DIR}"
     done
 done
