@@ -58,9 +58,11 @@ deploy_script:
       echo "Skipping deployment because this is not a tagged commit"
       return
     }
-    # Specify account details for PyPI
     echo "Deploying..."
+    # Specify account details for PyPI
     mv .pypirc $env:USERPROFILE\\.pypirc
+    # ensure README gets packaged
+    mv README.md cpp
     # Workaround required to ensure setup.py finds the .pypirc under Windows
     $env:HOME=$env:USERPROFILE
     # Install wheel-building support

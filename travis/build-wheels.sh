@@ -4,6 +4,9 @@ set -e -x
 # Auditwheel requirements
 yum install -y atlas-devel
 
+# Ensure README gets packaged
+mv /io/README.md /io/cpp/
+
 OUT_DIR=/io/cpp/dist/
 mkdir -p "${OUT_DIR}"
 for PYBIN in /opt/python/*/bin; do

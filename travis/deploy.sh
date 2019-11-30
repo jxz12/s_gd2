@@ -18,6 +18,7 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     done
 else
     # os x build
+    mv README.md cpp
     cd cpp
     $PIP install --user numpy
     $PY setup.py sdist bdist_wheel
