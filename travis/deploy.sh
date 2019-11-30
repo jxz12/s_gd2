@@ -20,7 +20,7 @@ else
     # os x build
     mv README.md cpp
     cd cpp
-    $PIP install --user numpy
+    $PIP install --user numpy twine setuptools wheel
     $PY setup.py sdist bdist_wheel
     cd ..
 fi
