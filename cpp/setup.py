@@ -1,6 +1,8 @@
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
+import os
+
 # Third-party modules - we depend on numpy for everything
 import numpy
 # Obtain the numpy include directory.  This logic works across numpy versions.
@@ -17,9 +19,12 @@ _layout = Extension(
     include_dirs=[numpy_include],
 )
 
+version_py = os.path.join(os.path.dirname(__file__), 's_gd2', 'version.py')
+version = open(version_py).read().strip().split('=')[-1].replace('"', '').strip()
+
 setup(
     name="s_gd2",
-    version="1.3",
+    version=version,
     author="Jonathan Zheng",
     author_email="jxz12@ic.ac.uk",
     url="https://www.github.com/jxz12/s_gd2",
