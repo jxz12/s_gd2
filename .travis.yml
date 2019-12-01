@@ -116,7 +116,7 @@ before_install:
   fi
 
   if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    pyenv install $PYTHON
+    pyenv install --skip-existing $PYTHON
     PY=/Users/travis/.pyenv/versions/${PYTHON}/bin/python
   fi
 
