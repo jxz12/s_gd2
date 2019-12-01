@@ -11,8 +11,7 @@ def layout(I, J, V=None, t_max=30, eps=.01, random_seed=None, init=None):
         raise ValueError("length of edge indices I and J not equal or zero")
 
     # seed random state
-    if random_seed is None:
-        random_seed = np.random.randint(65536)
+    random_seed = _check_random_seed(random_seed)
 
     X = random_init(I, J, random_seed, init)
     
@@ -31,8 +30,7 @@ def layout_convergent(I, J, V=None, t_max=30, eps=.01, delta=.03, t_maxmax=200, 
         raise ValueError("length of edge indices I and J not equal or zero")
 
     # seed random state
-    if random_seed is None:
-        random_seed = np.random.randint(65536)
+    random_seed = _check_random_seed(random_seed)
 
     X = random_init(I, J, random_seed, init)
 
@@ -49,8 +47,7 @@ def layout_sparse(I, J, npivots, V=None, t_max=30, eps=.01, random_seed=None, in
     using the sparse approximation of Ortmann et al. (2017)"""
 
     # seed random state
-    if random_seed is None:
-        random_seed = np.random.randint(65536)
+    random_seed = _check_random_seed(random_seed)
 
     X = random_init(I, J, random_seed, init)
 
@@ -80,17 +77,9 @@ def mds_direct(n, d, w=None, etas=None, random_seed=None, init=None):
         etas = default_schedule(w)
 
     # seed random state
-    if random_seed is None:
-        random_seed = np.random.randint(65536)
+    random_seed = _check_random_seed(random_seed)
 
-    # initialize positions
-    if init is not None:
-        if len(init) != n:
-            raise ValueError("initial layout has incorrect shape")
-        X = init
-    else:
-        np.random.seed(random_seed)
-        X = np.random.rand(n, 2)
+    X = _random_init(n, random_seed, init)
 
     # do mds
     cpp.mds_direct(X, d, w, etas, random_seed)
@@ -106,22 +95,30 @@ def default_schedule(w, t_max=30, eps=.01):
 
 ### no c++ bindings for functions below ###
 
+def _check_random_seed(random_seed):
+    if random_seed is not None:
+        random_seed = np.random.randint(65536)
+    return random_seed
+
+def _random_init(n, random_seed, init=None):
+    # initialize positions
+    if init is not None:
+        if len(init) != n:
+            raise ValueError("initial layout has incorrect shape")
+        X = np.ascontiguousarray(init)
+    else:
+        np.random.seed(random_seed)
+        X = np.random.rand(n, 2)
+    return X
+
+
 def random_init(I, J, random_seed, init=None):
     if len(I) == 0 or len(I) != len(J):
         raise ValueError("length of edge indices I and J not equal or zero")
 
     n = max(max(I), max(J)) + 1
 
-    # initialize positions
-    if init is not None:
-        if len(init) != n:
-            raise ValueError("initial layout has incorrect shape")
-        X = init
-    else:
-        np.random.seed(random_seed)
-        X = np.random.rand(n,2)
-
-    return X
+    return _random_init(n, random_seed, init)
 
 
 def draw_png(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1):
