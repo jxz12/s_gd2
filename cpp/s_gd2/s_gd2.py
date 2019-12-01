@@ -95,8 +95,8 @@ def default_schedule(w, t_max=30, eps=.01):
 
 ### no c++ bindings for functions below ###
 
-def _check_random_seed(random_seed):
-    if random_seed is not None:
+def _check_random_seed(random_seed=None):
+    if random_seed is None:
         random_seed = np.random.randint(65536)
     return random_seed
 
