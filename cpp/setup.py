@@ -12,7 +12,7 @@ except AttributeError:
     numpy_include = numpy.get_numpy_include()
 
 install_requires = [
-    'numpy',
+    'numpy>=1.16',
 ]
 
 test_requires = [
