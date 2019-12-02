@@ -1,7 +1,7 @@
 from .swig import layout as cpp
 import numpy as np
 
-__all__ = ['layout','layout_convergent','layout_sparse','mds_direct','default_schedule','draw_svg','draw_png']
+__all__ = ['layout','layout_convergent','layout_sparse','mds_direct','default_schedule','draw_svg','draw_png','draw_matplotlib']
 
 def layout(I, J, V=None, t_max=30, eps=.01, random_seed=None, init=None):
     """takes a list of indices I and J
@@ -96,7 +96,7 @@ def default_schedule(w, t_max=30, eps=.01):
 ### no c++ bindings for functions below ###
 
 def _check_random_seed(random_seed):
-    if random_seed is not None:
+    if random_seed is None:
         random_seed = np.random.randint(65536)
     return random_seed
 
@@ -119,55 +119,6 @@ def random_init(I, J, random_seed, init=None):
     n = max(max(I), max(J)) + 1
 
     return _random_init(n, random_seed, init)
-
-
-def draw_png(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1):
-    """Takes a n-by-2 matrix of positions X and index pairs I and J
-    and draws it to a .png file, using the PyCairo library."""
-
-    n = len(X)
-    m = len(I)
-
-    X_min = [min(X[i,0] for i in range(n)), min(X[i,1] for i in range(n))]
-    X_max = [max(X[i,0] for i in range(n)), max(X[i,1] for i in range(n))]
-
-    range_max = max(X_max[0]-X_min[0], X_max[1]-X_min[1]) # taller or wider
-    range_max += 2*noderadius # guarantee no nodes are cut off at the edges
-    scale = (width-2*border) / range_max
-
-    X_png = np.empty((n,2))
-    for i in range(n):
-        X_png[i] = (X[i] - X_min) * scale
-        X_png[i] += [border + scale*noderadius, border + scale*noderadius]
-
-    # use cairo to draw
-    import cairo
-    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, width)
-    ctx = cairo.Context(surface)
-
-    ctx.set_line_width(linkwidth * scale)
-    ctx.set_line_cap(cairo.LineCap.ROUND)
-    ctx.set_source_rgba(0,0,0,linkopacity)
-
-    # draw links
-    for ij in range(m):
-        i = I[ij]
-        j = J[ij]
-        X_i = X_png[i]
-        X_j = X_png[j]
-        ctx.move_to(X_i[0], X_i[1])
-        ctx.line_to(X_j[0], X_j[1])
-        ctx.stroke()
-
-    # draw nodes
-    if noderadius > 0 and nodeopacity > 0:
-        ctx.set_source_rgba(0,0,0,nodeopacity)
-        radius = noderadius * scale
-        for i in range(n):
-            ctx.arc(X_png[i][0], X_png[i][1], radius, 0, 7)
-            ctx.fill()
-
-    surface.write_to_png(filepath)
 
 
 def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1):
@@ -215,9 +166,86 @@ def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, b
 
     svg_list.append("</svg>")
 
-    if filepath == None or filepath == '':
+    if filepath is None:
         return '\n'.join(svg_list)
     else:
         f = open(filepath, 'w')
         f.write('\n'.join(svg_list))
         f.close()
+
+def draw_png(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1):
+    """Takes a n-by-2 matrix of positions X and index pairs I and J
+    and draws it to a .png file with the same format as draw_svg(),
+    but using the PyCairo library instead of text svg."""
+
+    n = len(X)
+    m = len(I)
+
+    X_min = [min(X[i,0] for i in range(n)), min(X[i,1] for i in range(n))]
+    X_max = [max(X[i,0] for i in range(n)), max(X[i,1] for i in range(n))]
+
+    range_max = max(X_max[0]-X_min[0], X_max[1]-X_min[1]) # taller or wider
+    range_max += 2*noderadius # guarantee no nodes are cut off at the edges
+    scale = (width-2*border) / range_max
+
+    X_png = np.empty((n,2))
+    for i in range(n):
+        X_png[i] = (X[i] - X_min) * scale
+        X_png[i] += [border + scale*noderadius, border + scale*noderadius]
+
+    # use cairo to draw
+    import cairo
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, width)
+    ctx = cairo.Context(surface)
+
+    ctx.set_line_width(linkwidth * scale)
+    ctx.set_line_cap(cairo.LineCap.ROUND)
+    ctx.set_source_rgba(0,0,0,linkopacity)
+
+    # draw links
+    for ij in range(m):
+        i = I[ij]
+        j = J[ij]
+        X_i = X_png[i]
+        X_j = X_png[j]
+        ctx.move_to(X_i[0], X_i[1])
+        ctx.line_to(X_j[0], X_j[1])
+        ctx.stroke()
+
+    # draw nodes
+    if noderadius > 0 and nodeopacity > 0:
+        ctx.set_source_rgba(0,0,0,nodeopacity)
+        radius = noderadius * scale
+        for i in range(n):
+            ctx.arc(X_png[i][0], X_png[i][1], radius, 0, 7)
+            ctx.fill()
+
+    surface.write_to_png(filepath)
+
+
+def draw_matplotlib(X, I, J, filepath=None, noderadius=7, linkwidth=.5, border=1, dpi=None, nodeopacity=1, linkopacity=1):
+    """Takes a n-by-2 matrix of positions X and index pairs I and J
+    and draws the equivalent graph using matplotlib.pyplot.
+    The (fig, ax) is returned as a tuple if filename is empty."""
+
+    from matplotlib import pyplot as plt
+    from matplotlib import collections as mc
+
+    fig, ax = plt.subplots()
+    ax.axis('equal')
+    ax.axis('off')
+
+    ax.set_xlim(min(X[:,0])-border, max(X[:,0])+border)
+    ax.set_ylim(min(X[:,1])-border, max(X[:,1])+border)
+
+    links = zip((X[i] for i in I), (X[j] for j in J))
+    lc = mc.LineCollection(links, linewidths=linkwidth, colors=(0,0,0,linkopacity))
+    ax.add_collection(lc)
+
+    cc = mc.CircleCollection(np.full(len(X), noderadius), offsets=X, transOffset=ax.transData, linewidths=0, facecolors=(0,0,0,nodeopacity))
+    ax.add_collection(cc)
+
+    if filepath is None:
+        return fig, ax
+    else:
+        fig.savefig(filepath, dpi=dpi, bbox_inches='tight')
