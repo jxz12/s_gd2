@@ -131,9 +131,8 @@ def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, b
     n = len(X)
     m = len(I)
 
-    X_min = [min(X[i,0] for i in range(n)), min(X[i,1] for i in range(n))]
-    X_max = [max(X[i,0] for i in range(n)), max(X[i,1] for i in range(n))]
-
+    X_min = [min(X[:,0]), min(X[:,1])]
+    X_max = [max(X[:,0]), max(X[:,1])]
     range_max = max(X_max[0]-X_min[0], X_max[1]-X_min[1]) # taller or wider
     range_max += 2*noderadius # guarantee no nodes are cut off at the edges
     scale = (width-2*border) / range_max
@@ -202,9 +201,8 @@ def _draw_png_cairo(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000,
     n = len(X)
     m = len(I)
 
-    X_min = [min(X[i,0] for i in range(n)), min(X[i,1] for i in range(n))]
-    X_max = [max(X[i,0] for i in range(n)), max(X[i,1] for i in range(n))]
-
+    X_min = [min(X[:,0]), min(X[:,1])]
+    X_max = [max(X[:,0]), max(X[:,1])]
     range_max = max(X_max[0]-X_min[0], X_max[1]-X_min[1]) # taller or wider
     range_max += 2*noderadius # guarantee no nodes are cut off at the edges
     scale = (width-2*border) / range_max
@@ -249,21 +247,26 @@ def _draw_png_matplotlib(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=
     import matplotlib.pyplot as plt
     import matplotlib.collections as mc
 
-    fig, ax = plt.subplots()
-    ax.axis('equal')
-    ax.axis('off')
+    fig = plt.figure(figsize=(width, width))
+    ax = plt.axes()
     ax.set_xlim(min(X[:,0]), max(X[:,0]))
     ax.set_ylim(min(X[:,1]), max(X[:,1]))
+    ax.axis('off')
+    ax.set_aspect('equal', 'box')
+
+    # convert input data widths to display coordinates
+    x_display_min, y_display_min = ax.transData.inverted().transform((0,0))
+    noderadius_disp, linkwidth_disp = ax.transData.transform((x_display_min+noderadius, y_display_min+linkwidth))
 
     links = zip((X[i] for i in I), (X[j] for j in J))
-    # linkwidth = ax.transData.transform((ax.get_xlim()[0]+linkwidth,0))[0] # convert to 'display' space
-    # print(linkwidth)
-    lc = mc.LineCollection(links, linewidths=linkwidth, colors=(0,0,0,linkopacity))
+    lc = mc.LineCollection(links, linewidths=linkwidth_disp, colors=(0,0,0,linkopacity))
     ax.add_collection(lc)
 
-    # noderadius = ax.transData.transform((ax.get_xlim()[0]+noderadius,0))[0] # convert to 'display' space
-    # print(noderadius)
-    cc = mc.CircleCollection(np.full(len(X), noderadius), offsets=X, transOffset=ax.transData, linewidths=0, facecolors=(0,0,0,nodeopacity))
+    cc = mc.CircleCollection(np.full(len(X), noderadius_disp*noderadius_disp), offsets=X, transOffset=ax.transData, linewidths=0, facecolors=(0,0,0,nodeopacity))
     ax.add_collection(cc)
 
-    fig.savefig(filepath, dpi=200, bbox_inches='tight', format='png')
+    border_data, _ = ax.transLimits.transform((border/width, 0))
+    ax.set_xlim(min(X[:,0])-noderadius-border_data, max(X[:,0])+noderadius+border_data)
+    ax.set_ylim(min(X[:,1])-noderadius-border_data, max(X[:,1])+noderadius+border_data)
+
+    fig.savefig(filepath, dpi=1, bbox_inches='tight', format='png', transparent=True, origin='upper')
