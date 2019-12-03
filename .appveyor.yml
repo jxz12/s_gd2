@@ -2,7 +2,6 @@ version: '{build}'
 image: Visual Studio 2015
 platform:
 - x64
-# Disable temporarily
 - x86
 environment:
   global:
