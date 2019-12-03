@@ -15,7 +15,7 @@ matrix:
   fast_finish: true
   include:
   - os: linux
-    dist: bionic
+    dist: xenial
     env: PYTHON=2.7
     services:
     - docker
@@ -29,7 +29,7 @@ matrix:
           - python2.7-dev
   - os: linux
     env: PYTHON=3.5
-    dist: bionic
+    dist: xenial
     services:
     - docker
     addons:
@@ -42,7 +42,7 @@ matrix:
         - python3.5-dev
   - os: linux
     env: PYTHON=3.6
-    dist: bionic
+    dist: xenial
     services:
     - docker
     addons:
@@ -55,7 +55,7 @@ matrix:
         - python3.6-dev
   - os: linux
     env: PYTHON=3.7
-    dist: bionic
+    dist: xenial
     services:
     - docker
     addons:
@@ -133,7 +133,11 @@ install:
   $PIP install --user numpy
   $PIP install --user .
   cd ..
-- git diff --exit-code
+- |
+  # currently disabled because bionic doesn't work with deadsnakes
+  # and swig's latest version hasn't hit xenial
+  # enable this when bionic works
+  # git diff --exit-code
 
 script:
 - $PY --version
