@@ -102,8 +102,6 @@ matrix:
   - os: osx
     env: PYTHON=3.7-dev
     osx_image: xcode11.2
-  allow_failures:
-  - os: osx
 
 before_install:
 - |
