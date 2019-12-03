@@ -1,6 +1,5 @@
 from .swig import layout as cpp
 import numpy as np
-
 __all__ = ['layout','layout_convergent','layout_sparse','mds_direct','default_schedule','draw_svg','draw_png']
 
 def layout(I, J, V=None, t_max=30, eps=.01, random_seed=None, init=None):
@@ -121,16 +120,89 @@ def random_init(I, J, random_seed, init=None):
     return _random_init(n, random_seed, init)
 
 
-def draw_png(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1):
+def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1):
     """Takes a n-by-2 matrix of positions X and index pairs I and J
-    and draws it to a .png file, using the PyCairo library."""
+    and writes the equivalent picture in svg format.
+    The drawing will be expanded into a width*width square
+    Note that the parameters are in svg pixel units.
+    The style at the top of the output svg may also be edited as necessary.
+    The svg is returned as a string if filename is empty."""
 
     n = len(X)
     m = len(I)
 
-    X_min = [min(X[i,0] for i in range(n)), min(X[i,1] for i in range(n))]
-    X_max = [max(X[i,0] for i in range(n)), max(X[i,1] for i in range(n))]
+    X_min = [min(X[:,0]), min(X[:,1])]
+    X_max = [max(X[:,0]), max(X[:,1])]
+    range_max = max(X_max[0]-X_min[0], X_max[1]-X_min[1]) # taller or wider
+    range_max += 2*noderadius # guarantee no nodes are cut off at the edges
+    scale = (width-2*border) / range_max
 
+    X_svg = np.empty((n,2))
+    for i in range(n):
+        X_svg[i] = (X[i] - X_min) * scale
+        X_svg[i] += [border + scale*noderadius, border + scale*noderadius]
+
+    svg_list = []
+    svg_list.append('<svg width="{:.0f}" height="{:.0f}" xmlns="http://www.w3.org/2000/svg">'.format(width, width))
+    svg_list.append('<style type="text/css">')
+    svg_list.append('line{{stroke:black;stroke-width:{:.3f};stroke-opacity:{:.3f};stroke-linecap:round;}}'.format(scale*linkwidth,linkopacity))
+    svg_list.append('circle{{r:{};fill:black;fill-opacity:{:.3f}}}'.format(scale*noderadius,nodeopacity))
+    svg_list.append('</style>')
+
+    # draw links
+    for ij in range(m):
+        i = I[ij]
+        j = J[ij]
+        X_i = X_svg[i]
+        X_j = X_svg[j]
+        svg_list.append('<line x1="{:.1f}" x2="{:.1f}" y1="{:.1f}" y2="{:.1f}"/>'.format(X_i[0], X_j[0], X_i[1], X_j[1]))
+
+    # draw nodes
+    if noderadius > 0:
+        for i in range(n):
+            svg_list.append('<circle cx="{:.1f}" cy="{:.1f}"/>'.format(X_svg[i][0], X_svg[i][1]))
+
+    svg_list.append("</svg>")
+
+    if filepath is None:
+        return '\n'.join(svg_list)
+    else:
+        f = open(filepath, 'w')
+        f.write('\n'.join(svg_list))
+        f.close()
+
+import warnings
+try:
+    ModuleNotFoundError
+except NameError:
+    # doesn't exist in py2.7
+    ModuleNotFoundError = ImportError
+
+def draw_png(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1, backend=None):
+    """Takes a n-by-2 matrix of positions X and index pairs I and J
+    and draws it to a .png file with the same format as draw_svg(),
+    but using the PyCairo library instead of text svg.
+    If PyCairo is not available, defaults to a matplotlib backend instead."""
+
+    if backend is None or backend == 'pycairo':
+        try:
+            import cairo
+        except ModuleNotFoundError:
+            warnings.warn("pycairo is not installed. Using `backend='matplotlib'` instead.", UserWarning)
+            draw_png(X, I, J, filepath, noderadius, linkwidth, width, border, nodeopacity, linkopacity, backend='matplotlib')
+        else:
+            _draw_png_cairo(X, I, J, filepath, noderadius, linkwidth, width, border, nodeopacity, linkopacity)
+    elif backend == 'matplotlib':
+        _draw_png_matplotlib(X, I, J, filepath, noderadius, linkwidth, width, border, nodeopacity, linkopacity)
+    else:
+        raise ValueError("Expected ['pycairo', 'matplotlib'] in `backend`. Got {}".format(backend))
+
+def _draw_png_cairo(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1):
+    n = len(X)
+    m = len(I)
+
+    X_min = [min(X[:,0]), min(X[:,1])]
+    X_max = [max(X[:,0]), max(X[:,1])]
     range_max = max(X_max[0]-X_min[0], X_max[1]-X_min[1]) # taller or wider
     range_max += 2*noderadius # guarantee no nodes are cut off at the edges
     scale = (width-2*border) / range_max
@@ -170,54 +242,31 @@ def draw_png(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000, border
     surface.write_to_png(filepath)
 
 
-def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1):
-    """Takes a n-by-2 matrix of positions X and index pairs I and J
-    and writes the equivalent picture in svg format.
-    The drawing will be expanded into a width*width square
-    Note that the parameters are in svg pixel units.
-    The style at the top of the output svg may also be edited as necessary.
-    The svg is returned as a string if filename is empty."""
+# def _draw_png_matplotlib(X, I, J, filepath, noderadius=7, linkwidth=.5, border=1, dpi=None, nodeopacity=1, linkopacity=1):
+def _draw_png_matplotlib(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1):
+    import matplotlib.pyplot as plt
+    import matplotlib.collections as mc
 
-    n = len(X)
-    m = len(I)
+    fig = plt.figure(figsize=(width, width))
+    ax = plt.axes()
+    ax.set_xlim(min(X[:,0]), max(X[:,0]))
+    ax.set_ylim(min(X[:,1]), max(X[:,1]))
+    ax.axis('off')
+    ax.set_aspect('equal', 'box')
 
-    X_min = [min(X[i,0] for i in range(n)), min(X[i,1] for i in range(n))]
-    X_max = [max(X[i,0] for i in range(n)), max(X[i,1] for i in range(n))]
+    # convert input data widths to display coordinates
+    x_display_min, y_display_min = ax.transData.inverted().transform((0,0))
+    noderadius_disp, linkwidth_disp = ax.transData.transform((x_display_min+noderadius, y_display_min+linkwidth))
 
-    range_max = max(X_max[0]-X_min[0], X_max[1]-X_min[1]) # taller or wider
-    range_max += 2*noderadius # guarantee no nodes are cut off at the edges
-    scale = (width-2*border) / range_max
+    links = zip((X[i] for i in I), (X[j] for j in J))
+    lc = mc.LineCollection(links, linewidths=linkwidth_disp, colors=(0,0,0,linkopacity))
+    ax.add_collection(lc)
 
-    X_svg = np.empty((n,2))
-    for i in range(n):
-        X_svg[i] = (X[i] - X_min) * scale
-        X_svg[i] += [border + scale*noderadius, border + scale*noderadius]
+    cc = mc.CircleCollection(np.full(len(X), noderadius_disp*noderadius_disp), offsets=X, transOffset=ax.transData, linewidths=0, facecolors=(0,0,0,nodeopacity))
+    ax.add_collection(cc)
 
-    svg_list = []
-    svg_list.append('<svg width="{:.0f}" height="{:.0f}" xmlns="http://www.w3.org/2000/svg">'.format(width, width))
-    svg_list.append('<style type="text/css">')
-    svg_list.append('line{{stroke:black;stroke-width:{:.3f};stroke-opacity:{:.3f};stroke-linecap:round;}}'.format(scale*linkwidth,linkopacity))
-    svg_list.append('circle{{r:{};fill:black;fill-opacity:{:.3f}}}'.format(scale*noderadius,nodeopacity))
-    svg_list.append('</style>')
+    border_data, _ = ax.transLimits.transform((border/width, 0))
+    ax.set_xlim(min(X[:,0])-noderadius-border_data, max(X[:,0])+noderadius+border_data)
+    ax.set_ylim(min(X[:,1])-noderadius-border_data, max(X[:,1])+noderadius+border_data)
 
-    # draw links
-    for ij in range(m):
-        i = I[ij]
-        j = J[ij]
-        X_i = X_svg[i]
-        X_j = X_svg[j]
-        svg_list.append('<line x1="{:.1f}" x2="{:.1f}" y1="{:.1f}" y2="{:.1f}"/>'.format(X_i[0], X_j[0], X_i[1], X_j[1]))
-
-    # draw nodes
-    if noderadius > 0:
-        for i in range(n):
-            svg_list.append('<circle cx="{:.1f}" cy="{:.1f}"/>'.format(X_svg[i][0], X_svg[i][1]))
-
-    svg_list.append("</svg>")
-
-    if filepath == None or filepath == '':
-        return '\n'.join(svg_list)
-    else:
-        f = open(filepath, 'w')
-        f.write('\n'.join(svg_list))
-        f.close()
+    fig.savefig(filepath, dpi=1, bbox_inches='tight', format='png', transparent=True, origin='upper')

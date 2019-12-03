@@ -13,6 +13,7 @@ except AttributeError:
 
 install_requires = [
     'numpy>=1.16',
+    'matplotlib',
 ]
 
 test_requires = [

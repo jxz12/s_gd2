@@ -9,8 +9,8 @@
 #include <exception>
 
 // for testing
-#include <chrono>
-#include <iostream>
+// #include <chrono>
+// #include <iostream>
 
 #include "layout.hpp"
 
@@ -292,35 +292,28 @@ vector<double> schedule_convergent(const vector<term> &terms, int t_max, double 
 
 void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, double eps, int seed)
 {
-    //auto start = std::chrono::steady_clock::now();
-
     vector<term> terms = bfs(n, m, I, J);
-    //auto end = std::chrono::steady_clock::now();
-    //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() << "ms" << std::endl;
-
     vector<double> etas = schedule(terms, t_max, eps);
-    sgd(X, terms, etas);
-    //end = std::chrono::steady_clock::now();
-    //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count() << "ms" << std::endl;
+    sgd(X, terms, etas, seed);
 }
 
 void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, int seed)
 {
     vector<term> terms = dijkstra(n, m, I, J, V);
     vector<double> etas = schedule(terms, t_max, eps);
-    sgd(X, terms, etas);
+    sgd(X, terms, etas, seed);
 }
 void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax, int seed)
 {
     vector<term> terms = bfs(n, m, I, J);
     vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
-    sgd(X, terms, etas, delta);
+    sgd(X, terms, etas, delta, seed);
 }
 void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax, int seed)
 {
     vector<term> terms = dijkstra(n, m, I, J, V);
     vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
-    sgd(X, terms, etas, delta);
+    sgd(X, terms, etas, delta, seed);
 }
 
 // d and w should be condensed distance matrices
@@ -348,5 +341,5 @@ void mds_direct(int n, double* X, double* d, double* w, int t_max, double* eta, 
         etas.push_back(eta[t]);
     }
     
-    sgd(X, terms, etas, 0);
+    sgd(X, terms, etas, seed);
 }
