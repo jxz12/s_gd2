@@ -1,7 +1,6 @@
 from .swig import layout as cpp
 import numpy as np
-
-__all__ = ['layout','layout_convergent','layout_sparse','mds_direct','default_schedule','draw_svg','draw_png','draw_matplotlib']
+__all__ = ['layout','layout_convergent','layout_sparse','mds_direct','default_schedule','draw_svg','draw_png']
 
 def layout(I, J, V=None, t_max=30, eps=.01, random_seed=None, init=None):
     """takes a list of indices I and J
@@ -132,9 +131,8 @@ def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, b
     n = len(X)
     m = len(I)
 
-    X_min = [min(X[i,0] for i in range(n)), min(X[i,1] for i in range(n))]
-    X_max = [max(X[i,0] for i in range(n)), max(X[i,1] for i in range(n))]
-
+    X_min = [min(X[:,0]), min(X[:,1])]
+    X_max = [max(X[:,0]), max(X[:,1])]
     range_max = max(X_max[0]-X_min[0], X_max[1]-X_min[1]) # taller or wider
     range_max += 2*noderadius # guarantee no nodes are cut off at the edges
     scale = (width-2*border) / range_max
@@ -173,17 +171,38 @@ def draw_svg(X, I, J, filepath=None, noderadius=.2, linkwidth=.05, width=1000, b
         f.write('\n'.join(svg_list))
         f.close()
 
-def draw_png(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1):
+import warnings
+try:
+    ModuleNotFoundError
+except NameError:
+    # doesn't exist in py2.7
+    ModuleNotFoundError = ImportError
+
+def draw_png(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1, backend=None):
     """Takes a n-by-2 matrix of positions X and index pairs I and J
     and draws it to a .png file with the same format as draw_svg(),
-    but using the PyCairo library instead of text svg."""
+    but using the PyCairo library instead of text svg.
+    If PyCairo is not available, defaults to a matplotlib backend instead."""
 
+    if backend is None or backend == 'pycairo':
+        try:
+            import cairo
+        except ModuleNotFoundError:
+            warnings.warn("pycairo is not installed. Using `backend='matplotlib'` instead.", UserWarning)
+            draw_png(X, I, J, filepath, noderadius, linkwidth, width, border, nodeopacity, linkopacity, backend='matplotlib')
+        else:
+            _draw_png_cairo(X, I, J, filepath, noderadius, linkwidth, width, border, nodeopacity, linkopacity)
+    elif backend == 'matplotlib':
+        _draw_png_matplotlib(X, I, J, filepath, noderadius, linkwidth, width, border, nodeopacity, linkopacity)
+    else:
+        raise ValueError("Expected ['pycairo', 'matplotlib'] in `backend`. Got {}".format(backend))
+
+def _draw_png_cairo(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1):
     n = len(X)
     m = len(I)
 
-    X_min = [min(X[i,0] for i in range(n)), min(X[i,1] for i in range(n))]
-    X_max = [max(X[i,0] for i in range(n)), max(X[i,1] for i in range(n))]
-
+    X_min = [min(X[:,0]), min(X[:,1])]
+    X_max = [max(X[:,0]), max(X[:,1])]
     range_max = max(X_max[0]-X_min[0], X_max[1]-X_min[1]) # taller or wider
     range_max += 2*noderadius # guarantee no nodes are cut off at the edges
     scale = (width-2*border) / range_max
@@ -223,29 +242,31 @@ def draw_png(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000, border
     surface.write_to_png(filepath)
 
 
-def draw_matplotlib(X, I, J, filepath=None, noderadius=7, linkwidth=.5, border=1, dpi=None, nodeopacity=1, linkopacity=1):
-    """Takes a n-by-2 matrix of positions X and index pairs I and J
-    and draws the equivalent graph using matplotlib.pyplot.
-    The (fig, ax) is returned as a tuple if filename is empty."""
+# def _draw_png_matplotlib(X, I, J, filepath, noderadius=7, linkwidth=.5, border=1, dpi=None, nodeopacity=1, linkopacity=1):
+def _draw_png_matplotlib(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000, border=50, nodeopacity=1, linkopacity=1):
+    import matplotlib.pyplot as plt
+    import matplotlib.collections as mc
 
-    from matplotlib import pyplot as plt
-    from matplotlib import collections as mc
-
-    fig, ax = plt.subplots()
-    ax.axis('equal')
+    fig = plt.figure(figsize=(width, width))
+    ax = plt.axes()
+    ax.set_xlim(min(X[:,0]), max(X[:,0]))
+    ax.set_ylim(min(X[:,1]), max(X[:,1]))
     ax.axis('off')
+    ax.set_aspect('equal', 'box')
 
-    ax.set_xlim(min(X[:,0])-border, max(X[:,0])+border)
-    ax.set_ylim(min(X[:,1])-border, max(X[:,1])+border)
+    # convert input data widths to display coordinates
+    x_display_min, y_display_min = ax.transData.inverted().transform((0,0))
+    noderadius_disp, linkwidth_disp = ax.transData.transform((x_display_min+noderadius, y_display_min+linkwidth))
 
     links = zip((X[i] for i in I), (X[j] for j in J))
-    lc = mc.LineCollection(links, linewidths=linkwidth, colors=(0,0,0,linkopacity))
+    lc = mc.LineCollection(links, linewidths=linkwidth_disp, colors=(0,0,0,linkopacity))
     ax.add_collection(lc)
 
-    cc = mc.CircleCollection(np.full(len(X), noderadius), offsets=X, transOffset=ax.transData, linewidths=0, facecolors=(0,0,0,nodeopacity))
+    cc = mc.CircleCollection(np.full(len(X), noderadius_disp*noderadius_disp), offsets=X, transOffset=ax.transData, linewidths=0, facecolors=(0,0,0,nodeopacity))
     ax.add_collection(cc)
 
-    if filepath is None:
-        return fig, ax
-    else:
-        fig.savefig(filepath, dpi=dpi, bbox_inches='tight')
+    border_data, _ = ax.transLimits.transform((border/width, 0))
+    ax.set_xlim(min(X[:,0])-noderadius-border_data, max(X[:,0])+noderadius+border_data)
+    ax.set_ylim(min(X[:,1])-noderadius-border_data, max(X[:,1])+noderadius+border_data)
+
+    fig.savefig(filepath, dpi=1, bbox_inches='tight', format='png', transparent=True, origin='upper')
