@@ -88,7 +88,7 @@
 %inline %{
     void dimension_check(int kd) {
         if (kd != 2) {
-            PyErr_Format(PyExc_ValueError, "only 2D positions are currently supported");
+            PyErr_Format(PyExc_ValueError, "only 2D layouts are currently supported for graphs");
             return;
         }
     }
@@ -167,13 +167,16 @@
                        double* w, int len_w,
                        double* eta, int len_eta, int rseed) {
 
-        dimension_check(kd);
+        if (kd != 2 && kd !=3) {
+            PyErr_Format(PyExc_ValueError, "only 2D and 3D positions are currently supported");
+            return;
+        }
         int nC2 = (n*(n-1))/2;
         if (len_d != nC2 || len_w != nC2) {
             PyErr_Format(PyExc_ValueError, "d or w not right length for condensed distance matrix");
             return;
         }
-        mds_direct(n, X, d, w, len_eta, eta, rseed);
+        mds_direct(n, kd, X, d, w, len_eta, eta, rseed);
     }
 %}
 
