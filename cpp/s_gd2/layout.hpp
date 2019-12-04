@@ -15,7 +15,7 @@ void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double*
 void layout_sparse_unweighted(int n, double* X, int m, int* I, int* J, int p, int t_max, double eps, int seed);
 void layout_sparse_weighted(int n, double* X, int m, int* I, int* J, double* V, int p, int t_max, double eps, int seed);
 
-void mds_direct(int n, double* X, double* d, double* w, int t_max, double* etas, int seed);
+void mds_direct(int n, int kd, double* X, double* d, double* w, int t_max, double* etas, int seed);
 
 
 //////////////
@@ -28,6 +28,7 @@ struct term
     term(int i, int j, double d, double w) : i(i), j(j), d(d), w(w) {}
 };
 void sgd(double* X, vector<term> &terms, const vector<double> &etas, const double delta=0, const int seed=0);
+void sgd3D(double* X, vector<term> &terms, const vector<double> &etas, const double delta=0, const int seed=0);
 
 // for Dijkstra
 struct edge
