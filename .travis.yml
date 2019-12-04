@@ -1,0 +1,171 @@
+language: cpp
+
+sudo: required
+
+addons:
+  apt:
+    packages: &core_build
+    - swig
+  homebrew:
+    packages:
+    - pyenv
+    update: true
+
+matrix:
+  fast_finish: true
+  include:
+  - os: linux
+    dist: xenial
+    env: PYTHON=2.7
+    services:
+    - docker
+    addons:
+      apt:
+        update: true
+        sources:
+        - deadsnakes
+        packages:
+          - *core_build
+          - python2.7-dev
+  - os: linux
+    env: PYTHON=3.5
+    dist: xenial
+    services:
+    - docker
+    addons:
+      apt:
+        update: true
+        sources:
+        - deadsnakes
+        packages:
+        - *core_build
+        - python3.5-dev
+  - os: linux
+    env: PYTHON=3.6
+    dist: xenial
+    services:
+    - docker
+    addons:
+      apt:
+        update: true
+        sources:
+        - deadsnakes
+        packages:
+        - *core_build
+        - python3.6-dev
+  - os: linux
+    env: PYTHON=3.7
+    dist: xenial
+    services:
+    - docker
+    addons:
+      apt:
+        update: true
+        sources:
+        - deadsnakes
+        packages:
+        - *core_build
+        - python3.7-dev
+  - os: osx
+    env: PYTHON=2.7-dev
+    osx_image: xcode9.2
+  - os: osx
+    env: PYTHON=3.5-dev
+    osx_image: xcode9.2
+  - os: osx
+    env: PYTHON=3.6-dev
+    osx_image: xcode9.2
+  - os: osx
+    env: PYTHON=3.7-dev
+    osx_image: xcode9.2
+  - os: osx
+    env: PYTHON=2.7-dev
+    osx_image: xcode9.4
+  - os: osx
+    env: PYTHON=3.5-dev
+    osx_image: xcode9.4
+  - os: osx
+    env: PYTHON=3.6-dev
+    osx_image: xcode9.4
+  - os: osx
+    env: PYTHON=3.7-dev
+    osx_image: xcode9.4
+  - os: osx
+    env: PYTHON=2.7-dev
+    osx_image: xcode11.2
+  - os: osx
+    env: PYTHON=3.5-dev
+    osx_image: xcode11.2
+  - os: osx
+    env: PYTHON=3.6-dev
+    osx_image: xcode11.2
+  - os: osx
+    env: PYTHON=3.7-dev
+    osx_image: xcode11.2
+
+before_install:
+- |
+  PY=python
+  if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
+    if [ $(echo "$PYTHON" | grep "^3\.") ]; then
+      PY=python${PYTHON}
+      curl https://bootstrap.pypa.io/get-pip.py | sudo -H $PY
+    fi
+  fi
+
+  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    pyenv install --skip-existing $PYTHON
+    PY=/Users/travis/.pyenv/versions/${PYTHON}/bin/python
+  fi
+
+  PIP="$PY -m pip"
+  sudo -H $PIP install --upgrade pip
+
+install:
+- |
+  cd cpp
+  if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+    swig -python -c++ s_gd2/swig/layout.i
+    # if code is up to date, nothing should have changed
+  fi
+  $PIP install --user numpy
+  $PIP install --user .
+  cd ..
+- |
+  # currently disabled because bionic doesn't work with deadsnakes
+  # and swig's latest version hasn't hit xenial
+  # enable this when bionic works
+  # git diff --exit-code
+
+script:
+- $PY --version
+- cd cpp && $PIP install --user .[test]
+- $PY setup.py test
+- cd ..
+
+after_script:
+  - |
+    if [ "$TRAVIS_TAG" ]; then
+      export TRAVIS_OS_NAME
+      export PY
+      export PIP
+      export PYTHON
+      bash travis/deploy.sh
+      $PIP install --user "six>=1.9.0"
+      $PIP install --user twine
+      cp .pypirc ~/.pypirc
+      $PY -m twine upload -r pypi -p $PYPI_PASSWORD --skip-existing cpp/dist/*
+    else
+      echo "Skipping deployment because this is not a tagged commit"
+    fi
+
+before_cache:
+  - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then brew cleanup; fi
+
+cache:
+  - apt
+  - directories:
+    - $HOME/.cache/pip
+    - $HOME/Library/Caches/Homebrew
+    - $HOME/.pyenv
+

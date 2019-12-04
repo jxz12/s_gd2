@@ -11,6 +11,16 @@ try:
 except AttributeError:
     numpy_include = numpy.get_numpy_include()
 
+install_requires = [
+    'numpy>=1.16',
+    'matplotlib',
+]
+
+test_requires = [
+    'nose2',
+    'scipy',
+]
+
 _layout = Extension(
     name="_layout",
     headers=["./s_gd2/layout.hpp"],
@@ -29,7 +39,9 @@ setup(
     author_email="jxz12@ic.ac.uk",
     url="https://www.github.com/jxz12/s_gd2",
     description="A package for performing stochastic gradient descent (arXiv:1710.04626) to layout graphs",
-    install_requires=['numpy', 'matplotlib'],
+    install_requires=install_requires,
+    extras_require={'test':test_requires},
+    test_suite='nose2.collector.collector',
     packages=find_packages(),
     ext_modules=[_layout]
 )
