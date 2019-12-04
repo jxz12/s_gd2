@@ -14,7 +14,8 @@ environment:
   - PYTHON: 37
   pypipassword:
     # https://ci.appveyor.com/tools/encrypt
-    secure: GRzEKTz0q+eRwEFvm1Vdrg==
+    #secure: GRzEKTz0q+eRwEFvm1Vdrg==
+    secure: gAr0Sm5HnS179dcErNLElw==
 install:
 - cmd: '"%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat" %PLATFORM%'
 - cmd: git reset --hard
