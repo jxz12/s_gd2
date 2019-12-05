@@ -294,14 +294,14 @@ void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, doubl
 {
     vector<term> terms = bfs(n, m, I, J);
     vector<double> etas = schedule(terms, t_max, eps);
-    sgd(X, terms, etas, seed);
+    sgd(X, terms, etas, 0, seed);
 }
 
 void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, int seed)
 {
     vector<term> terms = dijkstra(n, m, I, J, V);
     vector<double> etas = schedule(terms, t_max, eps);
-    sgd(X, terms, etas, seed);
+    sgd(X, terms, etas, 0, seed);
 }
 void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax, int seed)
 {
@@ -341,5 +341,5 @@ void mds_direct(int n, double* X, double* d, double* w, int t_max, double* eta, 
         etas.push_back(eta[t]);
     }
     
-    sgd(X, terms, etas, seed);
+    sgd(X, terms, etas, 0, seed);
 }

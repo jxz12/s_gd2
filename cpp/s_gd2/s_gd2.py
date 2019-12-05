@@ -184,16 +184,33 @@ def draw_png(X, I, J, filepath, noderadius=.2, linkwidth=.05, width=1000, border
     but using the PyCairo library instead of text svg.
     If PyCairo is not available, defaults to a matplotlib backend instead."""
 
-    if backend is None or backend == 'pycairo':
+    if backend is None:
         try:
             import cairo
         except ModuleNotFoundError:
             warnings.warn("pycairo is not installed. Using `backend='matplotlib'` instead.", UserWarning)
-            draw_png(X, I, J, filepath, noderadius, linkwidth, width, border, nodeopacity, linkopacity, backend='matplotlib')
+            try:
+                import matplotlib
+            except:
+                warnings.warn("matplotlib is not installed either. Either install a valid backend from `['pycairo', 'matplotlib']` or try `draw_svg()` instead.")
+            else:
+                _draw_png_matplotlib(X, I, J, filepath, noderadius, linkwidth, width, border, nodeopacity, linkopacity)
+        else:
+            _draw_png_cairo(X, I, J, filepath, noderadius, linkwidth, width, border, nodeopacity, linkopacity)
+    elif backend == 'pycairo':
+        try:
+            import cairo
+        except ModuleNotFoundError:
+            warnings.warn("Backend .png renderer `pycairo` is not installed. Either install `pycairo` or try `draw_svg()` instead.")
         else:
             _draw_png_cairo(X, I, J, filepath, noderadius, linkwidth, width, border, nodeopacity, linkopacity)
     elif backend == 'matplotlib':
-        _draw_png_matplotlib(X, I, J, filepath, noderadius, linkwidth, width, border, nodeopacity, linkopacity)
+        try:
+            import matplotlib
+        except ModuleNotFoundError:
+            warnings.warn("Backend .png renderer `matplotlib` is not installed. Either install `matplotlib` or try `draw_svg()` instead.")
+        else:
+            _draw_png_matplotlib(X, I, J, filepath, noderadius, linkwidth, width, border, nodeopacity, linkopacity)
     else:
         raise ValueError("Expected ['pycairo', 'matplotlib'] in `backend`. Got {}".format(backend))
 

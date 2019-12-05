@@ -507,7 +507,7 @@ void layout_sparse_unweighted(int n, double* X, int m, int* I, int* J, int p, in
 {
     vector<vector<int>> g = build_graph_unweighted(n, m, I, J);
 
-    auto closest_pivots = maxmin_random_sp_unweighted(g, p, 0);
+    auto closest_pivots = maxmin_random_sp_unweighted(g, p, 0, seed);
     auto terms = MSSP_unweighted(g, closest_pivots);
     auto etas = schedule(terms, t_max, eps);
     sgd(X, terms, etas, seed);
@@ -516,7 +516,7 @@ void layout_sparse_weighted(int n, double* X, int m, int* I, int* J, double* V, 
 {
     vector<vector<edge>> g = build_graph_weighted(n, m, I, J, V);
 
-    auto closest_pivots = maxmin_random_sp_weighted(g, p, 0);
+    auto closest_pivots = maxmin_random_sp_weighted(g, p, 0, seed);
     auto terms = MSSP_weighted(g, closest_pivots);
     auto etas = schedule(terms, t_max, eps);
     sgd(X, terms, etas, seed);
