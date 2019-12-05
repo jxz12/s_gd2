@@ -55,7 +55,6 @@ void sgd(double* X, vector<term> &terms, const vector<double> &etas, double delt
             X[j*2] += r_x;
             X[j*2+1] += r_y;
         }
-        //std::cerr << ++iteration << ", eta: " << eta << ", Delta: " << Delta_max << std::endl;
         if (Delta_max < delta)
             return;
     }
@@ -317,7 +316,7 @@ void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double*
 }
 
 // d and w should be condensed distance matrices
-void mds_direct(int n, double* X, double* d, double* w, int t_max, double* eta, int seed)
+void mds_direct(int n, int kd, double* X, double* d, double* w, int t_max, double* eta, int seed)
 {
     // initialize SGD
     int nC2 = (n*(n-1))/2;
@@ -341,5 +340,56 @@ void mds_direct(int n, double* X, double* d, double* w, int t_max, double* eta, 
         etas.push_back(eta[t]);
     }
     
-    sgd(X, terms, etas, 0, seed);
+    if (kd == 2)
+        sgd(X, terms, etas, 0, seed);
+    else if (kd == 3)
+        sgd3D(X, terms, etas, 0, seed);
+    else
+        throw std::invalid_argument("only 2 or 3 dimensional layouts are supported");
+}
+void sgd3D(double* X, vector<term> &terms, const vector<double> &etas, double delta, const int seed)
+{
+    // seed random number generator
+    std::minstd_rand rng(seed);
+    // iterate through step sizes
+    for (double eta : etas)
+    {
+        // shuffle terms
+        std::shuffle(terms.begin(), terms.end(), rng);
+
+        double Delta_max = 0;
+        for (const term &t : terms)
+        {
+            // cap step size
+            double w_ij = t.w;
+            double mu = eta * w_ij;
+            if (mu > 1)
+                mu = 1;
+
+            double d_ij = t.d;
+            int i = t.i, j = t.j;
+
+            double dx = X[i*3]-X[j*3], dy = X[i*3+1]-X[j*3+1], dz = X[i*3+2]-X[j*3+2];
+            double mag = sqrt(dx*dx + dy*dy + dz*dz);
+
+            // check distances for early stopping
+            double Delta = mu * (mag-d_ij) / 2;
+            if (Delta > Delta_max)
+                Delta_max = Delta;
+
+            double r = Delta / mag;
+            double r_x = r * dx;
+            double r_y = r * dy;
+            double r_z = r * dz;
+            
+            X[i*3] -= r_x;
+            X[i*3+1] -= r_y;
+            X[i*3+2] -= r_z;
+            X[j*3] += r_x;
+            X[j*3+1] += r_y;
+            X[j*3+2] += r_z;
+        }
+        if (Delta_max < delta)
+            return;
+    }
 }

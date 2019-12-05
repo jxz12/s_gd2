@@ -61,7 +61,7 @@ def layout_sparse(I, J, npivots, V=None, t_max=30, eps=.01, random_seed=None, in
     return X
 
 
-def mds_direct(n, d, w=None, etas=None, random_seed=None, init=None):
+def mds_direct(n, d, w=None, etas=None, num_dimensions=2, random_seed=None, init=None):
     """takes nC2 vectors d (distance) and w (weight) with a vector of step sizes eta
     and returns a n-by-2 matrix of positions X"""
 
@@ -78,7 +78,7 @@ def mds_direct(n, d, w=None, etas=None, random_seed=None, init=None):
     # seed random state
     random_seed = _check_random_seed(random_seed)
 
-    X = _random_init(n, random_seed, init)
+    X = _random_init(n, random_seed, init, num_dimensions)
 
     # do mds
     cpp.mds_direct(X, d, w, etas, random_seed)
@@ -99,17 +99,23 @@ def _check_random_seed(random_seed=None):
         random_seed = np.random.randint(65536)
     return random_seed
 
-def _random_init(n, random_seed, init=None):
+def _random_init(n, random_seed, init=None, num_dimensions=2):
     # initialize positions
     if init is not None:
         if len(init) != n:
-            raise ValueError("initial layout has incorrect shape")
+            raise ValueError("initial layout length does not match number of points")
         X = np.ascontiguousarray(init)
+        if X.shape[1] != num_dimensions:
+            raise ValueError("initial layout dimensionality does not match num_dimensions")
     else:
         np.random.seed(random_seed)
-        X = np.random.rand(n, 2)
+        if num_dimensions == 2:
+            X = np.random.rand(n, 2)
+        elif num_dimensions == 3:
+            X = np.random.rand(n, 3)
+        else:
+            raise ValueError("only 2D and 3D layouts are supported")
     return X
-
 
 def random_init(I, J, random_seed, init=None):
     if len(I) == 0 or len(I) != len(J):

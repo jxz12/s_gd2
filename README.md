@@ -31,9 +31,9 @@ layout_sparse(I, J, npivots, V=None, t_max=30, eps=.01, random_seed=None, init=N
 ```
 is an implementation of the sparse stress approximation of Ortmann et al. (2017), described in Section 4.3 in the paper. It allows the algorithm to draw large graphs of up to millions of vertices, by strategically cutting terms from the loss function. A standard value for `npivots` is 200.
 ```python
-mds_direct(n, d, w=None, etas=None, random_seed=None, init=None)
+mds_direct(n, d, w=None, etas=None, num_dimensions=2, random_seed=None, init=None)
 ```
-directly optimises the stress function (Equation (1) in the paper) given n vertices, and condensed distance matrices `d` and `w` (see `scipy.spatial.distance.squareform`). If `w` is not provided, it is initialised to an array full of 1s. If `etas` is not provided, it defaults to the same schedule as used in `layout()`.
+directly optimises the stress function (Equation (1) in the paper) given n vertices, and condensed distance matrices `d` and `w` (see `scipy.spatial.distance.squareform`). If `w` is not provided, it is initialised to an array full of 1s. If `etas` is not provided, it defaults to the same schedule as used in `layout()`. `num_dimensions` may also be set to `3` if a 3-dimensional layout is desired.
 ```python
 draw_svg(X, I, J, filepath, noderadius=.2, linkwidth=.05, framewidth=1000, border=50, nodeopacity=1, linkopacity=1)
 ```
