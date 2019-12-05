@@ -20,16 +20,16 @@ using std::vector;
 void sgd(double* X, vector<term> &terms, const vector<double> &etas, double delta, const int seed)
 {
     // seed random number generator
-    // std::minstd_rand rng(seed);
-    srand(seed);
+    std::minstd_rand rng(seed);
+    // srand(seed);
 
     // iterate through step sizes
     // for (double eta : etas)
     for (unsigned it=0; it<etas.size(); it++)
     {
         // shuffle terms
-        // std::shuffle(terms.begin(), terms.end(), rng);
-        fisheryates_shuffle(terms);
+        std::shuffle(terms.begin(), terms.end(), rng);
+        // fisheryates_shuffle(terms);
 
         double Delta_max = 0;
         for (const term &t : terms)
@@ -203,7 +203,7 @@ vector<vector<edge> > build_graph_weighted(int n, int m, int* I, int* J, double*
 // using Dijkstra's algorithm, returning a vector of terms
 vector<term> dijkstra(int n, int m, int* I, int* J, double* V)
 {
-    vector<vector<int> > graph = build_graph_weighted(n, m, I, J, V);
+    vector<vector<edge> > graph = build_graph_weighted(n, m, I, J, V);
 
     int nC2 = (n*(n-1))/2;
     vector<term> terms;
@@ -327,11 +327,11 @@ void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, doubl
     vector<term> terms = bfs(n, m, I, J);
     vector<double> etas = schedule(terms, t_max, eps);
 
-    // auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::high_resolution_clock::now();
     sgd(X, terms, etas, 0, seed);
-    // auto end = std::chrono::high_resolution_clock::now();
-    // auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end-start);
-    // std::cerr << calculate_stress(X, terms) << " " << ms.count() << std::endl;
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end-start);
+    std::cerr << calculate_stress(X, terms) << " " << ms.count() << std::endl;
 }
 
 void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, int seed)
