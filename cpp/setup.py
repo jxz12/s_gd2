@@ -13,7 +13,6 @@ except AttributeError:
 
 install_requires = [
     'numpy>=1.16',
-    'matplotlib',
 ]
 
 test_requires = [
@@ -26,7 +25,7 @@ _layout = Extension(
     headers=["./s_gd2/layout.hpp"],
     sources=["./s_gd2/layout.cpp", "./s_gd2/sparse.cpp", "./s_gd2/swig/layout_wrap.cxx"],
     # extra_compile_args=["-std=c++11"],
-    extra_compile_args=["-std=c++98"],
+    # extra_compile_args=["-std=c++98"],
     include_dirs=[numpy_include],
 )
 

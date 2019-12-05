@@ -1,57 +1,53 @@
 #include <vector>
+// #include <random>
+// #include <algorithm>
 #include <queue>
 #include <set>
 #include <map>
 #include <limits>
 #include <cmath>
-#include <exception>
-#include <algorithm>
-#include <random>
+#include <stdexcept>
 #include <cstdlib>
 
-// for testing
-#include <chrono>
+// for debug and test
 #include <iostream>
 
 #include "layout.hpp"
 
 using std::vector;
 
-void sgd(double* X, vector<term> &terms, const vector<double> &etas, double delta, const int seed)
+void sgd(double* X, vector<term> &terms, const vector<double> &etas, const int seed)
 {
     // seed random number generator
-    std::minstd_rand rng(seed);
-    // srand(seed);
+    // std::minstd_rand rng(seed);
+    srand(seed);
 
     // iterate through step sizes
-    // for (double eta : etas)
-    for (unsigned it=0; it<etas.size(); it++)
+    for (unsigned i_eta=0; i_eta<etas.size(); i_eta++)
     {
+        const double eta = etas[i_eta];
         // shuffle terms
-        std::shuffle(terms.begin(), terms.end(), rng);
-        // fisheryates_shuffle(terms);
+        // std::shuffle(terms.begin(), terms.end(), rng);
+        fisheryates_shuffle(terms);
 
-        double Delta_max = 0;
-        for (const term &t : terms)
+        unsigned n_terms = terms.size();
+        for (unsigned i_term=0; i_term<n_terms; i_term++)
         {
+            const term &t = terms[i_term];
+            const int &i = t.i, &j = t.j;
+            const double &w_ij = t.w;
+            const double &d_ij = t.d;
+
             // cap step size
-            double w_ij = t.w;
-            double mu = etas[it] * w_ij;
+            double mu = eta * w_ij;
             if (mu > 1)
                 mu = 1;
-
-            double d_ij = t.d;
-            int i = t.i, j = t.j;
 
             double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
             double mag = sqrt(dx*dx + dy*dy);
 
             // check distances for early stopping
-            double Delta = mu * (mag-d_ij) / 2;
-            if (Delta > Delta_max)
-                Delta_max = Delta;
-
-            double r = Delta / mag;
+            double r = (mu * (mag-d_ij)) / (2*mag);
             double r_x = r * dx;
             double r_y = r * dy;
             
@@ -60,8 +56,6 @@ void sgd(double* X, vector<term> &terms, const vector<double> &etas, double delt
             X[j*2] += r_x;
             X[j*2+1] += r_y;
         }
-        if (Delta_max < delta)
-            return;
     }
 }
 void fisheryates_shuffle(vector<term> &terms)
@@ -78,11 +72,13 @@ void fisheryates_shuffle(vector<term> &terms)
 double calculate_stress(double* X, const vector<term> &terms)
 {
     double stress = 0;
-    for (const term &t : terms)
+    unsigned n_terms = terms.size();
+    for  (unsigned i_term=0; i_term<n_terms; i_term++)
     {
-        double w_ij = t.w;
-        double d_ij = t.d;
-        int i = t.i, j = t.j;
+        const term &t = terms[i_term];
+        const double &w_ij = t.w;
+        const double &d_ij = t.d;
+        const int &i = t.i, &j = t.j;
 
         double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
         double stretch = d_ij - sqrt(dx*dx + dy*dy);
@@ -140,8 +136,10 @@ vector<term> bfs(int n, int m, int* I, int* J)
         {
             int current = q.front();
             q.pop();
-            for (int next : graph[current])
+
+            for (unsigned i_edge=0; i_edge<graph[current].size(); i_edge++)
             {
+                const int &next = graph[current][i_edge];
                 if (d[next] == -1)
                 {
                     q.push(next);
@@ -240,8 +238,10 @@ vector<term> dijkstra(int n, int m, int* I, int* J, double* V)
                     double w_ij = 1.0 / (d_ij*d_ij);
                     terms.push_back(term(source, current, d_ij, w_ij));
                 }
-                for (edge e : graph[current])
+
+                for (unsigned i_edge=0; i_edge<graph[current].size(); i_edge++)
                 {
+                    const edge &e = graph[current][i_edge];
                     // here the edge is not 'invisible'
                     int next = e.target;
                     double weight = e.weight;
@@ -268,7 +268,7 @@ vector<double> schedule(const vector<term> &terms, int t_max, double eps)
     double w_min = terms[0].w, w_max = terms[0].w;
     for (unsigned i=1; i<terms.size(); i++)
     {
-        double w = terms[i].w;
+        const double &w = terms[i].w;
         if (w < w_min) w_min = w;
         if (w > w_max) w_max = w;
     }
@@ -291,7 +291,7 @@ vector<double> schedule_convergent(const vector<term> &terms, int t_max, double 
     double w_min = terms[0].w, w_max = terms[0].w;
     for (unsigned i=1; i<terms.size(); i++)
     {
-        double w = terms[i].w;
+        const double &w = terms[i].w;
         if (w < w_min) w_min = w;
         if (w > w_max) w_max = w;
     }
@@ -322,35 +322,129 @@ vector<double> schedule_convergent(const vector<term> &terms, int t_max, double 
     return etas;
 }
 
+void sgd_threshold(double* X, vector<term> &terms, const vector<double> &etas, double delta, const int seed)
+{
+    // seed random number generator
+    // std::minstd_rand rng(seed);
+    srand(seed);
+
+    // iterate through step sizes
+    for (unsigned i_eta=0; i_eta<etas.size(); i_eta++)
+    {
+        // shuffle terms
+        // std::shuffle(terms.begin(), terms.end(), rng);
+        fisheryates_shuffle(terms);
+
+        const double &eta = etas[i_eta];
+        unsigned n_terms = terms.size();
+        double Delta_max = 0;
+        for (unsigned i_term=0; i_term<n_terms; i_term++)
+        {
+            const term &t = terms[i_term];
+            const int &i = t.i, &j = t.j;
+            const double &w_ij = t.w;
+            const double &d_ij = t.d;
+
+            // cap step size
+            double mu = eta * w_ij;
+            if (mu > 1)
+                mu = 1;
+
+            double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
+            double mag = sqrt(dx*dx + dy*dy);
+
+            // check distances for early stopping
+            double Delta = mu * (mag-d_ij) / 2;
+            if (Delta > Delta_max)
+                Delta_max = Delta;
+
+            double r = Delta / mag;
+            double r_x = r * dx;
+            double r_y = r * dy;
+            
+            X[i*2] -= r_x;
+            X[i*2+1] -= r_y;
+            X[j*2] += r_x;
+            X[j*2+1] += r_y;
+        }
+        if (Delta_max < delta)
+            return;
+    }
+}
+void sgd3D(double* X, vector<term> &terms, const vector<double> &etas, const int seed)
+{
+    // seed random number generator
+    // std::minstd_rand rng(seed);
+    srand(seed);
+
+    // iterate through step sizes
+    for (unsigned i_eta=0; i_eta<etas.size(); i_eta++)
+    {
+        const double eta = etas[i_eta];
+        // shuffle terms
+        // std::shuffle(terms.begin(), terms.end(), rng);
+        fisheryates_shuffle(terms);
+
+        unsigned n_terms = terms.size();
+        for (unsigned i_term=0; i_term<n_terms; i_term++)
+        {
+            const term &t = terms[i_term];
+            const int &i = t.i, &j = t.j;
+            const double &w_ij = t.w;
+            const double &d_ij = t.d;
+
+            // cap step size
+            double mu = eta * w_ij;
+            if (mu > 1)
+                mu = 1;
+
+            double dx = X[i*3]-X[j*3], dy = X[i*3+1]-X[j*3+1], dz = X[i*3+2]-X[j*3+2];
+            double mag = sqrt(dx*dx + dy*dy + dz*dz);
+
+            double r = mu * (mag-d_ij) / (2*mag);
+            double r_x = r * dx;
+            double r_y = r * dy;
+            double r_z = r * dz;
+            
+            X[i*3] -= r_x;
+            X[i*3+1] -= r_y;
+            X[i*3+2] -= r_z;
+            X[j*3] += r_x;
+            X[j*3+1] += r_y;
+            X[j*3+2] += r_z;
+        }
+    }
+}
+
 void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, double eps, int seed)
 {
     vector<term> terms = bfs(n, m, I, J);
     vector<double> etas = schedule(terms, t_max, eps);
 
-    auto start = std::chrono::high_resolution_clock::now();
-    sgd(X, terms, etas, 0, seed);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end-start);
-    std::cerr << calculate_stress(X, terms) << " " << ms.count() << std::endl;
+    // auto start = std::chrono::high_resolution_clock::now();
+    sgd(X, terms, etas, seed);
+    // auto end = std::chrono::high_resolution_clock::now();
+    // auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end-start);
+    // std::cerr << calculate_stress(X, terms) << " " << ms.count() << std::endl;
 }
 
 void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, int seed)
 {
     vector<term> terms = dijkstra(n, m, I, J, V);
     vector<double> etas = schedule(terms, t_max, eps);
-    sgd(X, terms, etas, 0, seed);
+    sgd(X, terms, etas, seed);
 }
 void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax, int seed)
 {
     vector<term> terms = bfs(n, m, I, J);
     vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
-    sgd(X, terms, etas, delta, seed);
+    sgd_threshold(X, terms, etas, delta, seed);
 }
 void layout_weighted_convergent(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, double delta, int t_maxmax, int seed)
 {
     vector<term> terms = dijkstra(n, m, I, J, V);
     vector<double> etas = schedule_convergent(terms, t_max, eps, t_maxmax);
-    sgd(X, terms, etas, delta, seed);
+    sgd_threshold(X, terms, etas, delta, seed);
 }
 
 // d and w should be condensed distance matrices
@@ -379,58 +473,9 @@ void mds_direct(int n, int kd, double* X, double* d, double* w, int t_max, doubl
     }
     
     if (kd == 2)
-        sgd(X, terms, etas, 0, seed);
+        sgd(X, terms, etas, seed);
     else if (kd == 3)
-        sgd3D(X, terms, etas, 0, seed);
+        sgd3D(X, terms, etas, seed);
     else
         throw std::invalid_argument("only 2 or 3 dimensional layouts are supported");
-}
-void sgd3D(double* X, vector<term> &terms, const vector<double> &etas, double delta, const int seed)
-{
-    // seed random number generator
-    // std::minstd_rand rng(seed);
-    srand(seed);
-
-    // iterate through step sizes
-    for (double eta : etas)
-    {
-        // shuffle terms
-        // std::shuffle(terms.begin(), terms.end(), rng);
-        fisheryates_shuffle(terms);
-
-        double Delta_max = 0;
-        for (const term &t : terms)
-        {
-            // cap step size
-            double w_ij = t.w;
-            double mu = eta * w_ij;
-            if (mu > 1)
-                mu = 1;
-
-            double d_ij = t.d;
-            int i = t.i, j = t.j;
-
-            double dx = X[i*3]-X[j*3], dy = X[i*3+1]-X[j*3+1], dz = X[i*3+2]-X[j*3+2];
-            double mag = sqrt(dx*dx + dy*dy + dz*dz);
-
-            // check distances for early stopping
-            double Delta = mu * (mag-d_ij) / 2;
-            if (Delta > Delta_max)
-                Delta_max = Delta;
-
-            double r = Delta / mag;
-            double r_x = r * dx;
-            double r_y = r * dy;
-            double r_z = r * dz;
-            
-            X[i*3] -= r_x;
-            X[i*3+1] -= r_y;
-            X[i*3+2] -= r_z;
-            X[j*3] += r_x;
-            X[j*3+1] += r_y;
-            X[j*3+2] += r_z;
-        }
-        if (Delta_max < delta)
-            return;
-    }
 }

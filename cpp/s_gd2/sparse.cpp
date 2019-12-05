@@ -1,36 +1,42 @@
 #include <vector>
-#include <algorithm>
-#include <queue>
-#include <limits>
-#include <cmath>
 // #include <random>
+// #include <algorithm>
+#include <queue>
 #include <set>
 #include <map>
-#include <exception>
+#include <limits>
+#include <cmath>
+#include <stdexcept>
+#include <cstdlib>
 
 // for debug and test
-#include <chrono>
 #include <iostream>
 
 #include "layout.hpp"
 
 using std::vector;
-using std::map;
-using std::set;
 
 void sgd(double* X, vector<term_sparse> &terms, const vector<double> &etas, const int seed)
 {
     // seed random number generator
     // std::minstd_rand rng(seed);
+    srand(seed);
 
     // iterate through step sizes
-    for (double eta : etas)
+    for (unsigned i_eta=0; i_eta<etas.size(); i_eta++)
     {
+        const double eta = etas[i_eta];
         // shuffle terms
         // std::shuffle(terms.begin(), terms.end(), rng);
+        fisheryates_shuffle(terms);
 
-        for (const term_sparse& t : terms)
+        unsigned n_terms = terms.size();
+        for (unsigned i_term=0; i_term<n_terms; i_term++)
         {
+            const term_sparse &t = terms[i_term];
+            const int &i = t.i, &j = t.j;
+            const double &d_ij = t.d;
+
             // cap step size
             double mu_i = eta * t.w_ij;
             if (mu_i > 1)
@@ -40,9 +46,6 @@ void sgd(double* X, vector<term_sparse> &terms, const vector<double> &etas, cons
             double mu_j = eta * t.w_ji;
             if (mu_j > 1)
                 mu_j = 1;
-
-            double d_ij = t.d;
-            int i = t.i, j = t.j;
 
             double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
             double mag = sqrt(dx*dx + dy*dy);
@@ -56,6 +59,17 @@ void sgd(double* X, vector<term_sparse> &terms, const vector<double> &etas, cons
             X[j*2] += mu_j * r_x;
             X[j*2+1] += mu_j * r_y;
         }
+    }
+}
+void fisheryates_shuffle(vector<term_sparse> &terms)
+{
+    int n = terms.size();
+    for (int i=n-1; i>=1; i--)
+    {
+        int j = rand() % (i+1);
+        term_sparse temp = terms[i];
+        terms[i] = terms[j];
+        terms[j] = temp;
     }
 }
 
@@ -132,8 +146,10 @@ void maxmin_bfs_unweighted(const vector<vector<int> >& graph, const int p, vecto
     {
         int current = q.front();
         q.pop();
-        for (int next : graph[current])
+
+        for (unsigned i_edge=0; i_edge<graph[current].size(); i_edge++)
         {
+            const int &next = graph[current][i_edge];
             if (d[next] == -1)
             {
                 q.push(next);
@@ -154,24 +170,25 @@ vector<term_sparse> MSSP_unweighted(const vector<vector<int> >& graph, const vec
     int n = graph.size();
 
     // get pivots and their regions, but in sets
-    map<int, set<int> > regions;
+    std::map<int, std::set<int> > regions;
+    std::map<int, std::map<int, term_sparse> > termsDict;
     for (int i = 0; i < n; i++)
     {
         if (regions.find(closest_pivots[i]) == regions.end())
         {
-            regions[closest_pivots[i]] = set<int>();
+            regions[closest_pivots[i]] = std::set<int>();
         }
         regions[closest_pivots[i]].insert(i);
     }
 
-    map<int, map<int, term_sparse> > termsDict;
-    for (const auto& region : regions)
+    std::map<int, std::set<int> >::iterator region;
+    for (region=regions.begin(); region!=regions.end(); ++region)
     {
         // q contains next to visit
         std::queue<int> q;
         vector<int> d(n, -1);
 
-        int p = region.first;
+        int p = region->first;
         q.push(p);
         d[p] = 0;
 
@@ -185,8 +202,9 @@ vector<term_sparse> MSSP_unweighted(const vector<vector<int> >& graph, const vec
             int current = q.front();
             q.pop();
 
-            for (int next : graph[current])
+            for (unsigned i_edge=0; i_edge<graph[current].size(); i_edge++)
             {
+                const int &next = graph[current][i_edge];
                 if (d[next] == -1)
                 {
                     q.push(next);
@@ -198,7 +216,7 @@ vector<term_sparse> MSSP_unweighted(const vector<vector<int> >& graph, const vec
                         q2.pop();
                         s += 1;
                     }
-                    if (region.second.find(next) != region.second.end())
+                    if (region->second.find(next) != region->second.end())
                     {
                         q2.push(d[next]);
                     }
@@ -207,18 +225,18 @@ vector<term_sparse> MSSP_unweighted(const vector<vector<int> >& graph, const vec
                     if (i < p)
                     {
                         if (termsDict.find(i) == termsDict.end())
-                            termsDict[i] = map<int, term_sparse>();
+                            termsDict[i] = std::map<int, term_sparse>();
                         if (termsDict[i].find(p) == termsDict[i].end())
-                            termsDict[i].insert({ p, term_sparse(i, p, d[next]) });
+                            termsDict[i].insert(std::pair<int, term_sparse>(p, term_sparse(i, p, d[next])));
 
                         termsDict[i].at(p).w_ij = s / ((double)d[next] * d[next]);
                     }
                     else
                     {
                         if (termsDict.find(p) == termsDict.end())
-                            termsDict[p] = map<int, term_sparse>();
+                            termsDict[p] = std::map<int, term_sparse>();
                         if (termsDict[p].find(i) == termsDict[p].end())
-                            termsDict[p].insert({ i, term_sparse(p, i, d[next]) });
+                            termsDict[p].insert(std::pair<int, term_sparse>(i, term_sparse(p, i, d[next])));
 
                         termsDict[p].at(i).w_ji = s / ((double)d[next] * d[next]);
                     }
@@ -229,14 +247,15 @@ vector<term_sparse> MSSP_unweighted(const vector<vector<int> >& graph, const vec
     // 1-stress
     for (int i=0; i<n; i++)
     {
-        for (int j : graph[i])
+        for (unsigned i_edge=0; i_edge<graph[i].size(); i_edge++)
         {
+            const int j = graph[i][i_edge];
             if (i < j)
             {
                 if (termsDict.find(i) == termsDict.end())
-                    termsDict[i] = map<int, term_sparse>();
+                    termsDict[i] = std::map<int, term_sparse>();
                 if (termsDict[i].find(j) == termsDict[i].end())
-                    termsDict[i].insert({ j, term_sparse(i, j, 1) });
+                    termsDict[i].insert(std::pair<int, term_sparse>(j, term_sparse(i, j, 1)));
                 else
                     termsDict[i].at(j).d = 1;
 
@@ -245,11 +264,13 @@ vector<term_sparse> MSSP_unweighted(const vector<vector<int> >& graph, const vec
         }
     }
     vector<term_sparse> terms;
-    for (const auto& i : termsDict)
+    std::map<int, std::map<int, term_sparse> >::iterator it;
+    for (it=termsDict.begin(); it!=termsDict.end(); ++it)
     {
-        for (const auto& j : i.second)
+        std::map<int, term_sparse>::iterator jt;
+        for (jt=it->second.begin(); jt!=it->second.end(); ++jt)
         {
-            terms.push_back(j.second);
+            terms.push_back(jt->second);
         }
     }
     return terms;
@@ -333,8 +354,9 @@ void maxmin_bfs_weighted(const vector<vector<edge> >& graph, const int p, vector
                 mins[current] = d_pi;
                 argmins[current] = p;
             }
-            for (edge e : graph[current])
+            for (unsigned i_edge=0; i_edge<graph[current].size(); i_edge++)
             {
+                const edge &e = graph[current][i_edge];
                 // here the edge is not 'invisible'
                 int next = e.target;
                 double weight = e.weight;
@@ -355,20 +377,21 @@ vector<term_sparse> MSSP_weighted(const vector<vector<edge> >& graph, const vect
     int n = graph.size();
 
     // get pivots and their regions, but in sets
-    map<int, set<int> > regions;
+    std::map<int, std::set<int> > regions;
+    std::map<int, std::map<int, term_sparse> > termsDict;
     for (int i = 0; i < n; i++)
     {
         if (regions.find(closest_pivots[i]) == regions.end())
         {
-            regions[closest_pivots[i]] = set<int>();
+            regions[closest_pivots[i]] = std::set<int>();
         }
         regions[closest_pivots[i]].insert(i);
     }
 
-    map<int, map<int, term_sparse> > termsDict;
-    for (const auto& region : regions)
+    std::map<int, std::set<int> >::iterator region;
+    for (region=regions.begin(); region!=regions.end(); ++region)
     {
-        int p = region.first;
+        int p = region->first;
 
         vector<bool> visited(n, false);
         vector<double> d(n, std::numeric_limits<double>::max()); // init 'tentative' distances to infinity
@@ -377,8 +400,10 @@ vector<term_sparse> MSSP_weighted(const vector<vector<edge> >& graph, const vect
         std::priority_queue<edge, vector<edge>, edge_comp> pq;
 
         // init initial edges so that pivot-pivot term is avoided
-        for (edge e : graph[p])
+        for (unsigned i_edge=0; i_edge<graph[p].size(); i_edge++)
         {
+            const edge &e = graph[p][i_edge];
+
             // here the edge is not 'invisible'
             int next = e.target;
             double weight = e.weight;
@@ -409,7 +434,7 @@ vector<term_sparse> MSSP_weighted(const vector<vector<edge> >& graph, const vect
                     q2.pop();
                     s += 1;
                 }
-                if (region.second.find(current) != region.second.end())
+                if (region->second.find(current) != region->second.end())
                 {
                     q2.push(d_pi);
                 }
@@ -418,25 +443,27 @@ vector<term_sparse> MSSP_weighted(const vector<vector<edge> >& graph, const vect
                 if (i < p)
                 {
                     if (termsDict.find(i) == termsDict.end())
-                        termsDict[i] = map<int, term_sparse>();
+                        termsDict[i] = std::map<int, term_sparse>();
                     if (termsDict[i].find(p) == termsDict[i].end())
-                        termsDict[i].insert({ p, term_sparse(i, p, d_pi) });
+                        termsDict[i].insert(std::pair<int, term_sparse>(p, term_sparse(i, p, d_pi)));
 
                     termsDict[i].at(p).w_ij = s / ((double)d_pi * d_pi);
                 }
                 else
                 {
                     if (termsDict.find(p) == termsDict.end())
-                        termsDict[p] = map<int, term_sparse>();
+                        termsDict[p] = std::map<int, term_sparse>();
                     if (termsDict[p].find(i) == termsDict[p].end())
-                        termsDict[p].insert({ i, term_sparse(p, i, d_pi) });
+                        termsDict[p].insert(std::pair<int, term_sparse>(i, term_sparse(p, i, d_pi)));
 
                     termsDict[p].at(i).w_ji = s / ((double)d_pi * d_pi);
                 }
 
                 // update tentative distances
-                for (edge e : graph[current])
+                for (unsigned i_edge=0; i_edge<graph[current].size(); i_edge++)
                 {
+                    const edge &e = graph[current][i_edge];
+
                     // here the edge is not 'invisible'
                     int next = e.target;
                     double weight = e.weight;
@@ -453,16 +480,18 @@ vector<term_sparse> MSSP_weighted(const vector<vector<edge> >& graph, const vect
     // 1-stress
     for (int i=0; i<n; i++)
     {
-        for (edge e : graph[i])
+        for (unsigned i_edge=0; i_edge<graph[i].size(); i_edge++)
         {
+            const edge &e = graph[i][i_edge];
+
             int j = e.target;
             double d_ij = e.weight;
             if (i < j)
             {
                 if (termsDict.find(i) == termsDict.end())
-                    termsDict[i] = map<int, term_sparse>();
+                    termsDict[i] = std::map<int, term_sparse>();
                 if (termsDict[i].find(j) == termsDict[i].end())
-                    termsDict[i].insert({ j, term_sparse(i, j, d_ij) });
+                    termsDict[i].insert(std::pair<int, term_sparse>(j, term_sparse(i, j, d_ij)));
                 else
                     termsDict[i].at(j).d = d_ij;
 
@@ -471,11 +500,13 @@ vector<term_sparse> MSSP_weighted(const vector<vector<edge> >& graph, const vect
         }
     }
     vector<term_sparse> terms;
-    for (const auto& i : termsDict)
+    std::map<int, std::map<int, term_sparse> >::iterator it;
+    for (it=termsDict.begin(); it!=termsDict.end(); ++it)
     {
-        for (const auto& j : i.second)
+        std::map<int, term_sparse>::iterator jt;
+        for (jt=it->second.begin(); jt!=it->second.end(); ++jt)
         {
-            terms.push_back(j.second);
+            terms.push_back(jt->second);
         }
     }
     return terms;
@@ -485,8 +516,9 @@ vector<double> schedule(const vector<term_sparse> &terms, int t_max, double eps)
 {
     double w_min = std::numeric_limits<double>::max();
     double w_max = std::numeric_limits<double>::min();
-    for (const auto& term : terms)
+    for (unsigned i=0; i<terms.size(); i++)
     {
+        const term_sparse &term = terms[i];
         if (term.w_ij < w_min && term.w_ij != 0) w_min = term.w_ij;
         if (term.w_ji < w_min && term.w_ji != 0) w_min = term.w_ji;
 
