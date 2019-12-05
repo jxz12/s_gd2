@@ -1,16 +1,17 @@
 #include <vector>
-#include <algorithm>
 #include <queue>
-#include <unordered_set>
-#include <unordered_map>
+#include <set>
+#include <map>
 #include <limits>
 #include <cmath>
-#include <random>
 #include <exception>
+#include <algorithm>
+#include <random>
+#include <cstdlib>
 
 // for testing
-// #include <chrono>
-// #include <iostream>
+#include <chrono>
+#include <iostream>
 
 #include "layout.hpp"
 
@@ -19,19 +20,23 @@ using std::vector;
 void sgd(double* X, vector<term> &terms, const vector<double> &etas, double delta, const int seed)
 {
     // seed random number generator
-    std::minstd_rand rng(seed);
+    // std::minstd_rand rng(seed);
+    srand(seed);
+
     // iterate through step sizes
-    for (double eta : etas)
+    // for (double eta : etas)
+    for (unsigned it=0; it<etas.size(); it++)
     {
         // shuffle terms
-        std::shuffle(terms.begin(), terms.end(), rng);
+        // std::shuffle(terms.begin(), terms.end(), rng);
+        fisheryates_shuffle(terms);
 
         double Delta_max = 0;
         for (const term &t : terms)
         {
             // cap step size
             double w_ij = t.w;
-            double mu = eta * w_ij;
+            double mu = etas[it] * w_ij;
             if (mu > 1)
                 mu = 1;
 
@@ -59,12 +64,38 @@ void sgd(double* X, vector<term> &terms, const vector<double> &etas, double delt
             return;
     }
 }
+void fisheryates_shuffle(vector<term> &terms)
+{
+    int n = terms.size();
+    for (int i=n-1; i>=1; i--)
+    {
+        int j = rand() % (i+1);
+        term temp = terms[i];
+        terms[i] = terms[j];
+        terms[j] = temp;
+    }
+}
+double calculate_stress(double* X, const vector<term> &terms)
+{
+    double stress = 0;
+    for (const term &t : terms)
+    {
+        double w_ij = t.w;
+        double d_ij = t.d;
+        int i = t.i, j = t.j;
 
-vector<vector<int>> build_graph_unweighted(int n, int m, int* I, int* J)
+        double dx = X[i*2]-X[j*2], dy = X[i*2+1]-X[j*2+1];
+        double stretch = d_ij - sqrt(dx*dx + dy*dy);
+        stress += w_ij*stretch*stretch;
+    }
+    return stress;
+}
+
+vector<vector<int> > build_graph_unweighted(int n, int m, int* I, int* J)
 {
     // used to make graph undirected, in case it is not already
-    vector<std::unordered_set<int>> undirected(n);
-    vector<vector<int>> graph(n);
+    vector<std::set<int> > undirected(n);
+    vector<vector<int> > graph(n);
 
     for (int ij=0; ij<m; ij++)
     {
@@ -87,7 +118,7 @@ vector<vector<int>> build_graph_unweighted(int n, int m, int* I, int* J)
 // using a breadth-first search, returning a vector of terms
 vector<term> bfs(int n, int m, int* I, int* J)
 {
-    auto graph = build_graph_unweighted(n, m, I, J);
+    vector<vector<int> > graph = build_graph_unweighted(n, m, I, J);
 
     int nC2 = (n*(n-1))/2;
     vector<term> terms;
@@ -134,11 +165,11 @@ vector<term> bfs(int n, int m, int* I, int* J)
 }
 
 
-vector<vector<edge>> build_graph_weighted(int n, int m, int* I, int* J, double* V)
+vector<vector<edge> > build_graph_weighted(int n, int m, int* I, int* J, double* V)
 {
     // used to make graph undirected, in case graph is not already
-    vector<std::unordered_map<int, double>> undirected(n);
-    vector<vector<edge>> graph(n);
+    vector<std::map<int, double> > undirected(n);
+    vector<vector<edge> > graph(n);
 
     for (int ij=0; ij<m; ij++)
     {
@@ -152,8 +183,10 @@ vector<vector<edge>> build_graph_weighted(int n, int m, int* I, int* J, double* 
 
         if (i != j && undirected[j].find(i) == undirected[j].end()) // if key not there
         {
-            undirected[i].insert({j, v});
-            undirected[j].insert({i, v});
+            // undirected[i].insert({j, v});
+            // undirected[j].insert({i, v});
+            undirected[i].insert(std::pair<int,double>(j, v));
+            undirected[j].insert(std::pair<int,double>(i, v));
             graph[i].push_back(edge(j, v));
             graph[j].push_back(edge(i, v));
         }
@@ -170,7 +203,7 @@ vector<vector<edge>> build_graph_weighted(int n, int m, int* I, int* J, double* 
 // using Dijkstra's algorithm, returning a vector of terms
 vector<term> dijkstra(int n, int m, int* I, int* J, double* V)
 {
-    auto graph = build_graph_weighted(n, m, I, J, V);
+    vector<vector<int> > graph = build_graph_weighted(n, m, I, J, V);
 
     int nC2 = (n*(n-1))/2;
     vector<term> terms;
@@ -293,14 +326,19 @@ void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, doubl
 {
     vector<term> terms = bfs(n, m, I, J);
     vector<double> etas = schedule(terms, t_max, eps);
-    sgd(X, terms, etas, seed);
+
+    // auto start = std::chrono::high_resolution_clock::now();
+    sgd(X, terms, etas, 0, seed);
+    // auto end = std::chrono::high_resolution_clock::now();
+    // auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end-start);
+    // std::cerr << calculate_stress(X, terms) << " " << ms.count() << std::endl;
 }
 
 void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, int seed)
 {
     vector<term> terms = dijkstra(n, m, I, J, V);
     vector<double> etas = schedule(terms, t_max, eps);
-    sgd(X, terms, etas, seed);
+    sgd(X, terms, etas, 0, seed);
 }
 void layout_unweighted_convergent(int n, double* X, int m, int* I, int* J, int t_max, double eps, double delta, int t_maxmax, int seed)
 {
@@ -341,21 +379,24 @@ void mds_direct(int n, int kd, double* X, double* d, double* w, int t_max, doubl
     }
     
     if (kd == 2)
-        sgd(X, terms, etas, seed);
+        sgd(X, terms, etas, 0, seed);
     else if (kd == 3)
-        sgd3D(X, terms, etas, seed);
+        sgd3D(X, terms, etas, 0, seed);
     else
         throw std::invalid_argument("only 2 or 3 dimensional layouts are supported");
 }
 void sgd3D(double* X, vector<term> &terms, const vector<double> &etas, double delta, const int seed)
 {
     // seed random number generator
-    std::minstd_rand rng(seed);
+    // std::minstd_rand rng(seed);
+    srand(seed);
+
     // iterate through step sizes
     for (double eta : etas)
     {
         // shuffle terms
-        std::shuffle(terms.begin(), terms.end(), rng);
+        // std::shuffle(terms.begin(), terms.end(), rng);
+        fisheryates_shuffle(terms);
 
         double Delta_max = 0;
         for (const term &t : terms)

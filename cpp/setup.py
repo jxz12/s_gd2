@@ -25,7 +25,8 @@ _layout = Extension(
     name="_layout",
     headers=["./s_gd2/layout.hpp"],
     sources=["./s_gd2/layout.cpp", "./s_gd2/sparse.cpp", "./s_gd2/swig/layout_wrap.cxx"],
-    extra_compile_args=["-std=c++11"],
+    # extra_compile_args=["-std=c++11"],
+    extra_compile_args=["-std=c++98"],
     include_dirs=[numpy_include],
 )
 
