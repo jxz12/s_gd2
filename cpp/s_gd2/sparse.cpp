@@ -1,18 +1,17 @@
 #include <vector>
-// #include <random>
-// #include <algorithm>
 #include <queue>
 #include <set>
 #include <map>
 #include <limits>
 #include <cmath>
 #include <stdexcept>
-#include <cstdlib>
 
 // for debug and test
 #include <iostream>
+#include <ctime>
 
 #include "layout.hpp"
+#include "randomkit.h"
 
 using std::vector;
 
@@ -20,7 +19,9 @@ void sgd(double* X, vector<term_sparse> &terms, const vector<double> &etas, cons
 {
     // seed random number generator
     // std::minstd_rand rng(seed);
-    srand(seed);
+    // srand(seed);
+    rk_state rstate;
+    rk_seed(seed, &rstate);
 
     // iterate through step sizes
     for (unsigned i_eta=0; i_eta<etas.size(); i_eta++)
@@ -28,7 +29,8 @@ void sgd(double* X, vector<term_sparse> &terms, const vector<double> &etas, cons
         const double eta = etas[i_eta];
         // shuffle terms
         // std::shuffle(terms.begin(), terms.end(), rng);
-        fisheryates_shuffle(terms);
+        // fisheryates_shuffle(terms);
+        fisheryates_shuffle(terms, rstate);
 
         unsigned n_terms = terms.size();
         for (unsigned i_term=0; i_term<n_terms; i_term++)
@@ -67,6 +69,17 @@ void fisheryates_shuffle(vector<term_sparse> &terms)
     for (int i=n-1; i>=1; i--)
     {
         int j = rand() % (i+1);
+        term_sparse temp = terms[i];
+        terms[i] = terms[j];
+        terms[j] = temp;
+    }
+}
+void fisheryates_shuffle(vector<term_sparse> &terms, rk_state &rstate)
+{
+    int n = terms.size();
+    for (int i=n-1; i>=1; i--)
+    {
+        unsigned j = rk_interval(i, &rstate);
         term_sparse temp = terms[i];
         terms[i] = terms[j];
         terms[j] = temp;
