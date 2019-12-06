@@ -8,7 +8,6 @@
 
 // for debug and test
 #include <iostream>
-#include <ctime>
 
 #include "layout.hpp"
 #include "randomkit.h"

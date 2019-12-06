@@ -8,7 +8,6 @@
 
 // for debug and test
 #include <iostream>
-#include <ctime>
 
 #include "layout.hpp"
 #include "randomkit.h"
@@ -19,6 +18,7 @@ void sgd(double* X, vector<term> &terms, const vector<double> &etas, const int s
 {
     // seed random number generator
     // std::minstd_rand rng(seed);
+    // std::mt19937 rng(seed);
     // srand(seed);
     rk_state rstate;
     rk_seed(seed, &rstate);
