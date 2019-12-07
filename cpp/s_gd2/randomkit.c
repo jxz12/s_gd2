@@ -132,7 +132,7 @@ char *rk_strerror[RK_ERR_MAX] =
 };
 
 /* static functions */
-static unsigned long rk_hash(unsigned long key);
+// static unsigned long rk_hash(unsigned long key);
 
 void
 rk_seed(unsigned long seed, rk_state *state)
@@ -152,53 +152,53 @@ rk_seed(unsigned long seed, rk_state *state)
 }
 
 /* Thomas Wang 32 bits integer hash function */
-unsigned long
-rk_hash(unsigned long key)
-{
-    key += ~(key << 15);
-    key ^=  (key >> 10);
-    key +=  (key << 3);
-    key ^=  (key >> 6);
-    key += ~(key << 11);
-    key ^=  (key >> 16);
-    return key;
-}
+// unsigned long
+// rk_hash(unsigned long key)
+// {
+//     key += ~(key << 15);
+//     key ^=  (key >> 10);
+//     key +=  (key << 3);
+//     key ^=  (key >> 6);
+//     key += ~(key << 11);
+//     key ^=  (key >> 16);
+//     return key;
+// }
 
-rk_error
-rk_randomseed(rk_state *state)
-{
-#ifndef _WIN32
-    struct timeval tv;
-#else
-    struct _timeb  tv;
-#endif
-    int i;
+// rk_error
+// rk_randomseed(rk_state *state)
+// {
+// #ifndef _WIN32
+//     struct timeval tv;
+// #else
+//     struct _timeb  tv;
+// #endif
+//     int i;
 
-    if (rk_devfill(state->key, sizeof(state->key), 0) == RK_NOERR) {
-        /* ensures non-zero key */
-        state->key[0] |= 0x80000000UL;
-        state->pos = RK_STATE_LEN;
-        state->gauss = 0;
-        state->has_gauss = 0;
-        state->has_binomial = 0;
+//     if (rk_devfill(state->key, sizeof(state->key), 0) == RK_NOERR) {
+//         /* ensures non-zero key */
+//         state->key[0] |= 0x80000000UL;
+//         state->pos = RK_STATE_LEN;
+//         state->gauss = 0;
+//         state->has_gauss = 0;
+//         state->has_binomial = 0;
 
-        for (i = 0; i < 624; i++) {
-            state->key[i] &= 0xffffffffUL;
-        }
-        return RK_NOERR;
-    }
+//         for (i = 0; i < 624; i++) {
+//             state->key[i] &= 0xffffffffUL;
+//         }
+//         return RK_NOERR;
+//     }
 
-#ifndef _WIN32
-    gettimeofday(&tv, NULL);
-    rk_seed(rk_hash(getpid()) ^ rk_hash(tv.tv_sec) ^ rk_hash(tv.tv_usec)
-            ^ rk_hash(clock()), state);
-#else
-    _FTIME(&tv);
-    rk_seed(rk_hash(tv.time) ^ rk_hash(tv.millitm) ^ rk_hash(clock()), state);
-#endif
+// #ifndef _WIN32
+//     gettimeofday(&tv, NULL);
+//     rk_seed(rk_hash(getpid()) ^ rk_hash(tv.tv_sec) ^ rk_hash(tv.tv_usec)
+//             ^ rk_hash(clock()), state);
+// #else
+//     _FTIME(&tv);
+//     rk_seed(rk_hash(tv.time) ^ rk_hash(tv.millitm) ^ rk_hash(clock()), state);
+// #endif
 
-    return RK_ENODEV;
-}
+//     return RK_ENODEV;
+// }
 
 /* Magic Mersenne Twister constants */
 #define N 624
@@ -296,107 +296,107 @@ rk_double(rk_state *state)
     return (a * 67108864.0 + b) / 9007199254740992.0;
 }
 
-void
-rk_fill(void *buffer, size_t size, rk_state *state)
-{
-    unsigned long r;
-    unsigned char *buf = (unsigned char *)buffer;
+// void
+// rk_fill(void *buffer, size_t size, rk_state *state)
+// {
+//     unsigned long r;
+//     unsigned char *buf = (unsigned char *)buffer;
 
-    for (; size >= 4; size -= 4) {
-        r = rk_random(state);
-        *(buf++) = r & 0xFF;
-        *(buf++) = (r >> 8) & 0xFF;
-        *(buf++) = (r >> 16) & 0xFF;
-        *(buf++) = (r >> 24) & 0xFF;
-    }
+//     for (; size >= 4; size -= 4) {
+//         r = rk_random(state);
+//         *(buf++) = r & 0xFF;
+//         *(buf++) = (r >> 8) & 0xFF;
+//         *(buf++) = (r >> 16) & 0xFF;
+//         *(buf++) = (r >> 24) & 0xFF;
+//     }
 
-    if (!size) {
-        return;
-    }
-    r = rk_random(state);
-    for (; size; r >>= 8, size --) {
-        *(buf++) = (unsigned char)(r & 0xFF);
-    }
-}
+//     if (!size) {
+//         return;
+//     }
+//     r = rk_random(state);
+//     for (; size; r >>= 8, size --) {
+//         *(buf++) = (unsigned char)(r & 0xFF);
+//     }
+// }
 
-rk_error
-rk_devfill(void *buffer, size_t size, int strong)
-{
-#ifndef _WIN32
-    FILE *rfile;
-    int done;
+// rk_error
+// rk_devfill(void *buffer, size_t size, int strong)
+// {
+// #ifndef _WIN32
+//     FILE *rfile;
+//     int done;
 
-    if (strong) {
-        rfile = fopen(RK_DEV_RANDOM, "rb");
-    }
-    else {
-        rfile = fopen(RK_DEV_URANDOM, "rb");
-    }
-    if (rfile == NULL) {
-        return RK_ENODEV;
-    }
-    done = fread(buffer, size, 1, rfile);
-    fclose(rfile);
-    if (done) {
-        return RK_NOERR;
-    }
-#else
+//     if (strong) {
+//         rfile = fopen(RK_DEV_RANDOM, "rb");
+//     }
+//     else {
+//         rfile = fopen(RK_DEV_URANDOM, "rb");
+//     }
+//     if (rfile == NULL) {
+//         return RK_ENODEV;
+//     }
+//     done = fread(buffer, size, 1, rfile);
+//     fclose(rfile);
+//     if (done) {
+//         return RK_NOERR;
+//     }
+// #else
 
-#ifndef RK_NO_WINCRYPT
-    HCRYPTPROV hCryptProv;
-    BOOL done;
+// #ifndef RK_NO_WINCRYPT
+//     HCRYPTPROV hCryptProv;
+//     BOOL done;
 
-    if (!CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_FULL,
-            CRYPT_VERIFYCONTEXT) || !hCryptProv) {
-        return RK_ENODEV;
-    }
-    done = CryptGenRandom(hCryptProv, size, (unsigned char *)buffer);
-    CryptReleaseContext(hCryptProv, 0);
-    if (done) {
-        return RK_NOERR;
-    }
-#endif
+//     if (!CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_FULL,
+//             CRYPT_VERIFYCONTEXT) || !hCryptProv) {
+//         return RK_ENODEV;
+//     }
+//     done = CryptGenRandom(hCryptProv, size, (unsigned char *)buffer);
+//     CryptReleaseContext(hCryptProv, 0);
+//     if (done) {
+//         return RK_NOERR;
+//     }
+// #endif
 
-#endif
-    return RK_ENODEV;
-}
+// #endif
+//     return RK_ENODEV;
+// }
 
-rk_error
-rk_altfill(void *buffer, size_t size, int strong, rk_state *state)
-{
-    rk_error err;
+// rk_error
+// rk_altfill(void *buffer, size_t size, int strong, rk_state *state)
+// {
+//     rk_error err;
 
-    err = rk_devfill(buffer, size, strong);
-    if (err) {
-        rk_fill(buffer, size, state);
-    }
-    return err;
-}
+//     err = rk_devfill(buffer, size, strong);
+//     if (err) {
+//         rk_fill(buffer, size, state);
+//     }
+//     return err;
+// }
 
-double
-rk_gauss(rk_state *state)
-{
-    if (state->has_gauss) {
-        const double tmp = state->gauss;
-        state->gauss = 0;
-        state->has_gauss = 0;
-        return tmp;
-    }
-    else {
-        double f, x1, x2, r2;
+// double
+// rk_gauss(rk_state *state)
+// {
+//     if (state->has_gauss) {
+//         const double tmp = state->gauss;
+//         state->gauss = 0;
+//         state->has_gauss = 0;
+//         return tmp;
+//     }
+//     else {
+//         double f, x1, x2, r2;
 
-        do {
-            x1 = 2.0*rk_double(state) - 1.0;
-            x2 = 2.0*rk_double(state) - 1.0;
-            r2 = x1*x1 + x2*x2;
-        }
-        while (r2 >= 1.0 || r2 == 0.0);
+//         do {
+//             x1 = 2.0*rk_double(state) - 1.0;
+//             x2 = 2.0*rk_double(state) - 1.0;
+//             r2 = x1*x1 + x2*x2;
+//         }
+//         while (r2 >= 1.0 || r2 == 0.0);
 
-        /* Box-Muller transform */
-        f = sqrt(-2.0*log(r2)/r2);
-        /* Keep for next call */
-        state->gauss = f*x1;
-        state->has_gauss = 1;
-        return f*x2;
-    }
-}
+//         /* Box-Muller transform */
+//         f = sqrt(-2.0*log(r2)/r2);
+//         /* Keep for next call */
+//         state->gauss = f*x1;
+//         state->has_gauss = 1;
+//         return f*x2;
+//     }
+// }
