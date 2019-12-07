@@ -60,17 +60,17 @@ void sgd(double* X, vector<term> &terms, const vector<double> &etas, const int s
         }
     }
 }
-void fisheryates_shuffle(vector<term> &terms)
-{
-    int n = terms.size();
-    for (int i=n-1; i>=1; i--)
-    {
-        int j = rand() % (i+1);
-        term temp = terms[i];
-        terms[i] = terms[j];
-        terms[j] = temp;
-    }
-}
+// void fisheryates_shuffle(vector<term> &terms)
+// {
+//     int n = terms.size();
+//     for (int i=n-1; i>=1; i--)
+//     {
+//         int j = rand() % (i+1);
+//         term temp = terms[i];
+//         terms[i] = terms[j];
+//         terms[j] = temp;
+//     }
+// }
 void fisheryates_shuffle(vector<term> &terms, rk_state &rstate)
 {
     int n = terms.size();
