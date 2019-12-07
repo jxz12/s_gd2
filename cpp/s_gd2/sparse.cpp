@@ -18,7 +18,6 @@ void sgd(double* X, vector<term_sparse> &terms, const vector<double> &etas, cons
 {
     // seed random number generator
     // std::minstd_rand rng(seed);
-    // srand(seed);
     rk_state rstate;
     rk_seed(seed, &rstate);
 
@@ -62,17 +61,6 @@ void sgd(double* X, vector<term_sparse> &terms, const vector<double> &etas, cons
         }
     }
 }
-// void fisheryates_shuffle(vector<term_sparse> &terms)
-// {
-//     int n = terms.size();
-//     for (int i=n-1; i>=1; i--)
-//     {
-//         int j = rand() % (i+1);
-//         term_sparse temp = terms[i];
-//         terms[i] = terms[j];
-//         terms[j] = temp;
-//     }
-// }
 void fisheryates_shuffle(vector<term_sparse> &terms, rk_state &rstate)
 {
     int n = terms.size();
@@ -106,7 +94,8 @@ vector<int> maxmin_random_sp_unweighted(const vector<vector<int> >& graph, int n
     // remaining pivots
     // std::mt19937 rng(seed);
     // std::uniform_real_distribution<> uniform(0, 1);
-    srand(seed);
+    rk_state rstate;
+    rk_seed(seed, &rstate);
     for (int i = 1; i < n_pivots; i++)
     {
         // int max = mins[0], argmax = 0;
@@ -126,19 +115,20 @@ vector<int> maxmin_random_sp_unweighted(const vector<vector<int> >& graph, int n
         {
             min_total += mins[i];
         }
-        // double rn = uniform(rng) * min_total;
-        int rn = rand() % min_total;
+        int sample = rk_interval(min_total, &rstate);
         int cumul = 0;
-        int argmax = 0;
-        for (int i = 1; i < n; i++)
+        int argmax = -1;
+        for (int i = 0; i < n; i++)
         {
             cumul += mins[i];
-            if (cumul >= rn)
+            if (cumul >= sample)
             {
                 argmax = i;
                 break;
             }
         }
+        if (argmax == -1)
+            throw std::invalid_argument("unweighted pivot sampling failed");
 
         mins[argmax] = 0;
         argmins[argmax] = argmax;
@@ -313,7 +303,8 @@ vector<int> maxmin_random_sp_weighted(const vector<vector<edge> >& graph, int n_
     // remaining pivots
     // std::mt19937 rng(seed);
     // std::uniform_real_distribution<> uniform(0, 1);
-    srand(seed);
+    rk_state rstate;
+    rk_seed(seed, &rstate);
     for (int i = 1; i < n_pivots; i++)
     {
         // choose pivots with probability min
@@ -322,19 +313,20 @@ vector<int> maxmin_random_sp_weighted(const vector<vector<edge> >& graph, int n_
         {
             min_total += mins[i];
         }
-        // double rn = uniform(rng) * min_total;
-        double rn = ((double)rand() / RAND_MAX) * min_total;
+        double sample = rk_double(&rstate) * min_total;
         double cumul = 0;
-        int argmax = n-1;
-        for (int i = 1; i < n; i++)
+        int argmax = -1;
+        for (int i = 0; i < n; i++)
         {
             cumul += mins[i];
-            if (cumul >= rn)
+            if (cumul >= sample)
             {
                 argmax = i;
                 break;
             }
         }
+        if (argmax == -1)
+            throw std::invalid_argument("weighted pivot sampling failed");
 
         mins[argmax] = 0;
         argmins[argmax] = argmax;

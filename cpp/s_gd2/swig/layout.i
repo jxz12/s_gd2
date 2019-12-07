@@ -2,7 +2,6 @@
 %{
     #define SWIG_FILE_WITH_INIT
     #include "../layout.hpp"
-    #include "../randomkit.h"
 %}
 
 %include "numpy.i"
@@ -24,7 +23,6 @@
                                      (double* eta, int len_eta)}
 
 #include "../layout.hpp"
-#include "../randomkit.h"
 
 %include exception.i
 %rename (layout_unweighted) np_layout_unweighted;
