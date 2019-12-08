@@ -1,2 +1,2 @@
 include LICENSE
-recursive-include s_gd2 *.hpp *.py
+recursive-include s_gd2 *.hpp *.h *.py

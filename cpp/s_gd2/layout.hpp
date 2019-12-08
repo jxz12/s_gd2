@@ -1,6 +1,7 @@
 #ifndef LAYOUT_HPP
 #define LAYOUT_HPP
 
+#include "randomkit.h"
 #include <vector>
 using std::vector;
 
@@ -31,7 +32,7 @@ void sgd(double* X, vector<term> &terms, const vector<double> &etas, const int s
 void sgd_threshold(double* X, vector<term> &terms, const vector<double> &etas, const double delta, const int seed);
 void sgd3D(double* X, vector<term> &terms, const vector<double> &etas, const int seed);
  
-void fisheryates_shuffle(vector<term> &terms);
+void fisheryates_shuffle(vector<term> &terms, rk_state &rstate);
 double calculate_stress(double* X, const vector<term> &terms);
 
 // for Dijkstra
@@ -68,7 +69,7 @@ struct term_sparse
 };
 void sgd(double* X, vector<term_sparse>& terms, const vector<double>& etas, const int seed);
 
-void fisheryates_shuffle(vector<term_sparse> &terms);
+void fisheryates_shuffle(vector<term_sparse> &terms, rk_state &rstate);
 
 vector<int> maxmin_random_sp_unweighted(const vector<vector<int> >& graph, int n_pivots, int p0, int seed);
 vector<int> maxmin_random_sp_weighted(const vector<vector<edge> >& graph, int n_pivots, int p0, int seed);

@@ -1,18 +1,16 @@
 #include <vector>
-// #include <random>
-// #include <algorithm>
 #include <queue>
 #include <set>
 #include <map>
 #include <limits>
 #include <cmath>
 #include <stdexcept>
-#include <cstdlib>
 
 // for debug and test
 #include <iostream>
 
 #include "layout.hpp"
+#include "randomkit.h"
 
 using std::vector;
 
@@ -20,7 +18,10 @@ void sgd(double* X, vector<term> &terms, const vector<double> &etas, const int s
 {
     // seed random number generator
     // std::minstd_rand rng(seed);
-    srand(seed);
+    // std::mt19937 rng(seed);
+    // srand(seed);
+    rk_state rstate;
+    rk_seed(seed, &rstate);
 
     // iterate through step sizes
     for (unsigned i_eta=0; i_eta<etas.size(); i_eta++)
@@ -28,7 +29,8 @@ void sgd(double* X, vector<term> &terms, const vector<double> &etas, const int s
         const double eta = etas[i_eta];
         // shuffle terms
         // std::shuffle(terms.begin(), terms.end(), rng);
-        fisheryates_shuffle(terms);
+        // fisheryates_shuffle(terms);
+        fisheryates_shuffle(terms, rstate);
 
         unsigned n_terms = terms.size();
         for (unsigned i_term=0; i_term<n_terms; i_term++)
@@ -58,12 +60,12 @@ void sgd(double* X, vector<term> &terms, const vector<double> &etas, const int s
         }
     }
 }
-void fisheryates_shuffle(vector<term> &terms)
+void fisheryates_shuffle(vector<term> &terms, rk_state &rstate)
 {
     int n = terms.size();
-    for (int i=n-1; i>=1; i--)
+    for (unsigned i=n-1; i>=1; i--)
     {
-        int j = rand() % (i+1);
+        unsigned j = rk_interval(i, &rstate);
         term temp = terms[i];
         terms[i] = terms[j];
         terms[j] = temp;
@@ -326,14 +328,17 @@ void sgd_threshold(double* X, vector<term> &terms, const vector<double> &etas, d
 {
     // seed random number generator
     // std::minstd_rand rng(seed);
-    srand(seed);
+    // srand(seed);
+    rk_state rstate;
+    rk_seed(seed, &rstate);
 
     // iterate through step sizes
     for (unsigned i_eta=0; i_eta<etas.size(); i_eta++)
     {
         // shuffle terms
         // std::shuffle(terms.begin(), terms.end(), rng);
-        fisheryates_shuffle(terms);
+        // fisheryates_shuffle(terms);
+        fisheryates_shuffle(terms, rstate);
 
         const double &eta = etas[i_eta];
         unsigned n_terms = terms.size();
@@ -375,7 +380,9 @@ void sgd3D(double* X, vector<term> &terms, const vector<double> &etas, const int
 {
     // seed random number generator
     // std::minstd_rand rng(seed);
-    srand(seed);
+    // srand(seed);
+    rk_state rstate;
+    rk_seed(seed, &rstate);
 
     // iterate through step sizes
     for (unsigned i_eta=0; i_eta<etas.size(); i_eta++)
@@ -383,7 +390,8 @@ void sgd3D(double* X, vector<term> &terms, const vector<double> &etas, const int
         const double eta = etas[i_eta];
         // shuffle terms
         // std::shuffle(terms.begin(), terms.end(), rng);
-        fisheryates_shuffle(terms);
+        // fisheryates_shuffle(terms);
+        fisheryates_shuffle(terms, rstate);
 
         unsigned n_terms = terms.size();
         for (unsigned i_term=0; i_term<n_terms; i_term++)
@@ -420,12 +428,7 @@ void layout_unweighted(int n, double* X, int m, int* I, int* J, int t_max, doubl
 {
     vector<term> terms = bfs(n, m, I, J);
     vector<double> etas = schedule(terms, t_max, eps);
-
-    // auto start = std::chrono::high_resolution_clock::now();
     sgd(X, terms, etas, seed);
-    // auto end = std::chrono::high_resolution_clock::now();
-    // auto ms = std::chrono::duration_cast<std::chrono::microseconds>(end-start);
-    // std::cerr << calculate_stress(X, terms) << " " << ms.count() << std::endl;
 }
 
 void layout_weighted(int n, double* X, int m, int* I, int* J, double* V, int t_max, double eps, int seed)

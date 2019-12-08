@@ -3115,6 +3115,7 @@ namespace swig {
 
     #define SWIG_FILE_WITH_INIT
     #include "../layout.hpp"
+    #include "../randomkit.h"
 
 
 #ifndef SWIG_FILE_WITH_INIT

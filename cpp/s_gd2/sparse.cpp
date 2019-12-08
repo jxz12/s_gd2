@@ -1,18 +1,16 @@
 #include <vector>
-// #include <random>
-// #include <algorithm>
 #include <queue>
 #include <set>
 #include <map>
 #include <limits>
 #include <cmath>
 #include <stdexcept>
-#include <cstdlib>
 
 // for debug and test
 #include <iostream>
 
 #include "layout.hpp"
+#include "randomkit.h"
 
 using std::vector;
 
@@ -20,7 +18,8 @@ void sgd(double* X, vector<term_sparse> &terms, const vector<double> &etas, cons
 {
     // seed random number generator
     // std::minstd_rand rng(seed);
-    srand(seed);
+    rk_state rstate;
+    rk_seed(seed, &rstate);
 
     // iterate through step sizes
     for (unsigned i_eta=0; i_eta<etas.size(); i_eta++)
@@ -28,7 +27,8 @@ void sgd(double* X, vector<term_sparse> &terms, const vector<double> &etas, cons
         const double eta = etas[i_eta];
         // shuffle terms
         // std::shuffle(terms.begin(), terms.end(), rng);
-        fisheryates_shuffle(terms);
+        // fisheryates_shuffle(terms);
+        fisheryates_shuffle(terms, rstate);
 
         unsigned n_terms = terms.size();
         for (unsigned i_term=0; i_term<n_terms; i_term++)
@@ -61,12 +61,12 @@ void sgd(double* X, vector<term_sparse> &terms, const vector<double> &etas, cons
         }
     }
 }
-void fisheryates_shuffle(vector<term_sparse> &terms)
+void fisheryates_shuffle(vector<term_sparse> &terms, rk_state &rstate)
 {
     int n = terms.size();
     for (int i=n-1; i>=1; i--)
     {
-        int j = rand() % (i+1);
+        unsigned j = rk_interval(i, &rstate);
         term_sparse temp = terms[i];
         terms[i] = terms[j];
         terms[j] = temp;
@@ -94,7 +94,8 @@ vector<int> maxmin_random_sp_unweighted(const vector<vector<int> >& graph, int n
     // remaining pivots
     // std::mt19937 rng(seed);
     // std::uniform_real_distribution<> uniform(0, 1);
-    srand(seed);
+    rk_state rstate;
+    rk_seed(seed, &rstate);
     for (int i = 1; i < n_pivots; i++)
     {
         // int max = mins[0], argmax = 0;
@@ -114,19 +115,20 @@ vector<int> maxmin_random_sp_unweighted(const vector<vector<int> >& graph, int n
         {
             min_total += mins[i];
         }
-        // double rn = uniform(rng) * min_total;
-        int rn = rand() % min_total;
+        int sample = rk_interval(min_total, &rstate);
         int cumul = 0;
-        int argmax = 0;
-        for (int i = 1; i < n; i++)
+        int argmax = -1;
+        for (int i = 0; i < n; i++)
         {
             cumul += mins[i];
-            if (cumul >= rn)
+            if (cumul >= sample)
             {
                 argmax = i;
                 break;
             }
         }
+        if (argmax == -1)
+            throw std::invalid_argument("unweighted pivot sampling failed");
 
         mins[argmax] = 0;
         argmins[argmax] = argmax;
@@ -229,7 +231,8 @@ vector<term_sparse> MSSP_unweighted(const vector<vector<int> >& graph, const vec
                         if (termsDict[i].find(p) == termsDict[i].end())
                             termsDict[i].insert(std::pair<int, term_sparse>(p, term_sparse(i, p, d[next])));
 
-                        termsDict[i].at(p).w_ij = s / ((double)d[next] * d[next]);
+                        // termsDict[i].at(p).w_ij = s / ((double)d[next] * d[next]);
+                        termsDict[i].find(p)->second.w_ij = s / ((double)d[next] * d[next]);
                     }
                     else
                     {
@@ -238,7 +241,8 @@ vector<term_sparse> MSSP_unweighted(const vector<vector<int> >& graph, const vec
                         if (termsDict[p].find(i) == termsDict[p].end())
                             termsDict[p].insert(std::pair<int, term_sparse>(i, term_sparse(p, i, d[next])));
 
-                        termsDict[p].at(i).w_ji = s / ((double)d[next] * d[next]);
+                        // termsDict[p].at(i).w_ji = s / ((double)d[next] * d[next]);
+                        termsDict[p].find(i)->second.w_ji = s / ((double)d[next] * d[next]);
                     }
                 }
             }
@@ -257,9 +261,11 @@ vector<term_sparse> MSSP_unweighted(const vector<vector<int> >& graph, const vec
                 if (termsDict[i].find(j) == termsDict[i].end())
                     termsDict[i].insert(std::pair<int, term_sparse>(j, term_sparse(i, j, 1)));
                 else
-                    termsDict[i].at(j).d = 1;
+                    // termsDict[i].at(j).d = 1;
+                    termsDict[i].find(j)->second.d = 1;
 
-                termsDict[i].at(j).w_ij = termsDict[i].at(j).w_ji = 1;
+                // termsDict[i].at(j).w_ij = termsDict[i].at(j).w_ji = 1;
+                termsDict[i].find(j)->second.w_ij = termsDict[i].find(j)->second.w_ji = 1;
             }
         }
     }
@@ -297,7 +303,8 @@ vector<int> maxmin_random_sp_weighted(const vector<vector<edge> >& graph, int n_
     // remaining pivots
     // std::mt19937 rng(seed);
     // std::uniform_real_distribution<> uniform(0, 1);
-    srand(seed);
+    rk_state rstate;
+    rk_seed(seed, &rstate);
     for (int i = 1; i < n_pivots; i++)
     {
         // choose pivots with probability min
@@ -306,19 +313,20 @@ vector<int> maxmin_random_sp_weighted(const vector<vector<edge> >& graph, int n_
         {
             min_total += mins[i];
         }
-        // double rn = uniform(rng) * min_total;
-        double rn = ((double)rand() / RAND_MAX) * min_total;
+        double sample = rk_double(&rstate) * min_total;
         double cumul = 0;
-        int argmax = n-1;
-        for (int i = 1; i < n; i++)
+        int argmax = -1;
+        for (int i = 0; i < n; i++)
         {
             cumul += mins[i];
-            if (cumul >= rn)
+            if (cumul >= sample)
             {
                 argmax = i;
                 break;
             }
         }
+        if (argmax == -1)
+            throw std::invalid_argument("weighted pivot sampling failed");
 
         mins[argmax] = 0;
         argmins[argmax] = argmax;
@@ -447,7 +455,8 @@ vector<term_sparse> MSSP_weighted(const vector<vector<edge> >& graph, const vect
                     if (termsDict[i].find(p) == termsDict[i].end())
                         termsDict[i].insert(std::pair<int, term_sparse>(p, term_sparse(i, p, d_pi)));
 
-                    termsDict[i].at(p).w_ij = s / ((double)d_pi * d_pi);
+                    // termsDict[i].at(p).w_ij = s / ((double)d_pi * d_pi);
+                    termsDict[i].find(p)->second.w_ij = s / ((double)d_pi * d_pi);
                 }
                 else
                 {
@@ -456,7 +465,8 @@ vector<term_sparse> MSSP_weighted(const vector<vector<edge> >& graph, const vect
                     if (termsDict[p].find(i) == termsDict[p].end())
                         termsDict[p].insert(std::pair<int, term_sparse>(i, term_sparse(p, i, d_pi)));
 
-                    termsDict[p].at(i).w_ji = s / ((double)d_pi * d_pi);
+                    // termsDict[p].at(i).w_ji = s / ((double)d_pi * d_pi);
+                    termsDict[p].find(i)->second.w_ji = s / ((double)d_pi * d_pi);
                 }
 
                 // update tentative distances
@@ -493,9 +503,11 @@ vector<term_sparse> MSSP_weighted(const vector<vector<edge> >& graph, const vect
                 if (termsDict[i].find(j) == termsDict[i].end())
                     termsDict[i].insert(std::pair<int, term_sparse>(j, term_sparse(i, j, d_ij)));
                 else
-                    termsDict[i].at(j).d = d_ij;
+                    // termsDict[i].at(j).d = d_ij;
+                    termsDict[i].find(j)->second.d = d_ij;
 
-                termsDict[i].at(j).w_ij = termsDict[i].at(j).w_ji = 1/(d_ij*d_ij);
+                // termsDict[i].at(j).w_ij = termsDict[i].at(j).w_ji = 1/(d_ij*d_ij);
+                termsDict[i].find(j)->second.w_ij = termsDict[i].find(j)->second.w_ji = 1/(d_ij*d_ij);
             }
         }
     }
