@@ -7,8 +7,11 @@ Stochastic Gradient Descent for Graph Drawing [[arXiv:1710.04626]](https://arxiv
 
 ![image](https://media.giphy.com/media/JoaboGdTq1sXNnnIND/giphy.gif)
 
-
-We recommend using the available python package, implemented in C++ using SWIG to generate bindings. It may be installed using
+We recommend using the available python package, implemented in C++ using SWIG to generate bindings. It may be installed through conda using
+```
+conda install -c conda-forge s_gd2
+```
+or through pip with
 ```
 $ pip install s_gd2
 ```
