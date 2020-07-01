@@ -2,8 +2,8 @@
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/5h4mp93ku0ft62ha/branch/master?svg=true)](https://ci.appveyor.com/project/jxz12/s-gd2/branch/master)
 
 
-# s(gd)²
-Stochastic Gradient Descent for Graph Drawing [[arXiv:1710.04626]](https://arxiv.org/abs/1710.04626). A video of the corresponding talk (given at IEEE VIS 2019) can be viewed at [vimeo.com/373015168](https://vimeo.com/373015168).
+# (sgd)²
+Stress-based Graph Drawing by Stochastic Gradient Descent [[arXiv:1710.04626]](https://arxiv.org/abs/1710.04626). A video of the corresponding talk (given at IEEE VIS 2019) can be viewed at [vimeo.com/373015168](https://vimeo.com/373015168).
 
 ![image](https://media.giphy.com/media/JoaboGdTq1sXNnnIND/giphy.gif)
 
