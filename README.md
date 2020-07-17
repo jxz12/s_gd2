@@ -13,7 +13,7 @@ conda install -c conda-forge s_gd2
 ```
 or through pip with
 ```
-$ pip install s_gd2
+pip install s_gd2
 ```
 and an example use case looks like
 ```python
