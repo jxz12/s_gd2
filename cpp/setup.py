@@ -25,6 +25,7 @@ elif python_version < (3, 6):
 
 setup_requires = [
     numpy_version,
+    'Cython',
 ]
 
 install_requires = [
