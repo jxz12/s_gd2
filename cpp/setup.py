@@ -3,6 +3,7 @@ from setuptools.extension import Extension
 
 import sys
 import os
+import platform
 
 # Third-party modules - we depend on numpy for everything
 class get_numpy_include(object):
