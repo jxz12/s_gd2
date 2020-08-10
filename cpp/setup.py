@@ -18,7 +18,7 @@ class get_numpy_include(object):
 
 numpy_version = 'numpy>=1.16'
 if (int(sys.version[0]), int(sys.version[2])) < (3, 6):
-    numpy_version += '<1.19'
+    numpy_version += ',<1.19'
 
 setup_requires = [
     numpy_version,
