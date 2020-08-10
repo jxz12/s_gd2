@@ -16,8 +16,11 @@ class get_numpy_include(object):
         except AttributeError:
             return numpy.get_numpy_include()
 
+python_version = (int(sys.version[0]), int(sys.version[2]))
 numpy_version = 'numpy>=1.16'
-if (int(sys.version[0]), int(sys.version[2])) < (3, 6):
+if python_version < (3, 5):
+    numpy_version += ',<1.17'
+elif python_version < (3, 6):
     numpy_version += ',<1.19'
 
 setup_requires = [
