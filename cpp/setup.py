@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
+import sys
 import os
 
 # Third-party modules - we depend on numpy for everything
@@ -15,12 +16,16 @@ class get_numpy_include(object):
         except AttributeError:
             return numpy.get_numpy_include()
 
+numpy_version = 'numpy>=1.16'
+if (int(sys.version[0]), int(sys.version[2])) < (3, 6):
+    numpy_version += '<1.19'
+
 setup_requires = [
-    'numpy>=1.16',
+    numpy_version,
 ]
 
 install_requires = [
-    'numpy>=1.16',
+    numpy_version,
 ]
 
 test_requires = [
