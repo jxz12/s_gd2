@@ -128,7 +128,6 @@ install:
     swig -python -c++ s_gd2/swig/layout.i
     # if code is up to date, nothing should have changed
   fi
-  $PIP install --user numpy
   $PIP install --user .
   cd ..
 - |
