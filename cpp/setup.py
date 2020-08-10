@@ -21,7 +21,10 @@ numpy_version = 'numpy>=1.16'
 if python_version < (3, 5):
     numpy_version += ',<1.17'
 elif python_version < (3, 6):
-    numpy_version += ',<1.19'
+    if platform.system() == 'Windows':
+        numpy_version += ',<1.18'
+    else:
+        numpy_version += ',<1.19'
 
 setup_requires = [
     numpy_version,
