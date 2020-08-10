@@ -11,9 +11,9 @@ class get_numpy_include(object):
         import numpy
         # Obtain the numpy include directory.  This logic works across numpy versions.
         try:
-            numpy_include = numpy.get_include()
+            return numpy.get_include()
         except AttributeError:
-            numpy_include = numpy.get_numpy_include()
+            return numpy.get_numpy_include()
 
 setup_requires = [
     'numpy>=1.16',
