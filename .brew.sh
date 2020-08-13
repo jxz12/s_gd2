@@ -14,7 +14,7 @@ while true; do
     if [ $seconds = 60 ]; then
       let seconds=0
       let minutes=minutes+1
-      if [ $minutes = $max_minutes ]; then
+      if [ $minutes -gt $max_minutes ]; then
         sudo /usr/bin/kill $!
         sudo rm -rf /usr/local/var/homebrew/locks
         chown -R $(whoami) /usr/local/var/homebrew
