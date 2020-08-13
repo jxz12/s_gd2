@@ -6,10 +6,6 @@ addons:
   apt:
     packages: &core_build
     - swig
-  homebrew:
-    packages:
-    - pyenv
-    update: true
 
 matrix:
   fast_finish: true
@@ -106,7 +102,7 @@ matrix:
 before_install:
 - |
   PY=python
-  if [ "$TRAVIS_OS_NAME" = "linux" ]; then 
+  if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     if [ $(echo "$PYTHON" | grep "^3\.") ]; then
       PY=python${PYTHON}
       curl https://bootstrap.pypa.io/get-pip.py | sudo -H $PY
@@ -114,6 +110,10 @@ before_install:
   fi
 
   if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    chmod +x .brew.sh
+    ./.brew.sh update
+    ./.brew.sh upgrade
+    ./.brew.sh install pyenv
     pyenv install --skip-existing $PYTHON
     PY=/Users/travis/.pyenv/versions/${PYTHON}/bin/python
   fi
@@ -167,4 +167,3 @@ cache:
     - $HOME/.cache/pip
     - $HOME/Library/Caches/Homebrew
     - $HOME/.pyenv
-
