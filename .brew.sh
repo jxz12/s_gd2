@@ -6,6 +6,7 @@
 
 seconds=0
 minutes=0
+max_minutes=30
 brew $@ &
 while true; do
   ps -p$! 2>& 1>/dev/null
@@ -13,7 +14,14 @@ while true; do
     if [ $seconds = 60 ]; then
       let seconds=0
       let minutes=minutes+1
-      echo "brew $@ still running ($minutes min)"
+      if [ $minutes = $max_minutes ]; then
+        sudo /usr/bin/pkill ruby
+        sudo rm -rf /usr/local/var/homebrew/locks
+        chown -R $(whoami) /usr/local/var/homebrew
+        echo "brew $@ still running ($minutes min), killing"
+      else
+        echo "brew $@ still running ($minutes min)"
+      fi
     fi
     sleep 1
     let seconds=seconds+1
