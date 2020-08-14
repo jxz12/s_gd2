@@ -15,7 +15,7 @@ while true; do
       let seconds=0
       let minutes=minutes+1
       if [ $minutes -gt $max_minutes ]; then
-        sudo /usr/bin/kill $!
+        sudo /bin/kill $!
         sudo rm -rf /usr/local/var/homebrew/locks
         chown -R $(whoami) /usr/local/var/homebrew
         echo "brew $@ still running ($minutes min), killing"
