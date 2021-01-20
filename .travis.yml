@@ -106,7 +106,7 @@ matrix:
     env: PYTHON=3.8-dev
     osx_image: xcode9.2
   - os: osx
-    env: PYTHON=3.8-dev
+    env: PYTHON=3.9-dev
     osx_image: xcode9.2
   - os: osx
     env: PYTHON=2.7-dev
