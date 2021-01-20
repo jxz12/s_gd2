@@ -3,8 +3,6 @@ name: Publish Python 🐍 distributions 📦 to PyPI
 on:
   push:
     branches:
-      - 'master'
-      - 'test_deploy'
       - '*'
     tags:
       - '*'
@@ -18,7 +16,10 @@ jobs:
       fail-fast: true
       matrix:
         config:
-        - {name: 'windows-3.9', os: windows-latest, python: '3.9' }
+        - {name: 'windows-3.8-x64', os: windows-latest, python: '3.8', architecture: 'x64' }
+        - {name: 'windows-3.8-x86', os: windows-latest, python: '3.8', architecture: 'x86' }
+        - {name: 'windows-3.9-x64', os: windows-latest, python: '3.9', architecture: 'x64' }
+        - {name: 'windows-3.9-x86', os: windows-latest, python: '3.9', architecture: 'x86' }
 
     steps:
     - uses: actions/checkout@master
@@ -27,6 +28,7 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.config.python }}
+        architecture: ${{ matrix.config.architecture }}
 
     - name: Cache Python packages
       uses: actions/cache@v2
