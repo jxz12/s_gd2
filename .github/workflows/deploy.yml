@@ -3,7 +3,8 @@ name: Publish Python distributions to PyPI
 on:
   push:
     branches:
-      - '*'
+      - 'master'
+      - 'test_deploy'
     tags:
       - '*'
 
