@@ -53,8 +53,11 @@ jobs:
 
     - name: Build a binary wheel and a source tarball
       run: |
-        cp README.md cpp/
-        python -m build --sdist --wheel --outdir dist/ cpp
+        cd cpp
+        python setup.py build
+        python setup.py sdist bdist_wheel
+        cp -r dist ..
+        cd ..
 
     - name: Publish distribution 📦 to Test PyPI
       uses: pypa/gh-action-pypi-publish@master
