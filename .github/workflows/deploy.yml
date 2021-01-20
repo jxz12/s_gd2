@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-10.15, macos-11.0]
         python-version: ['2.7', '3.5', '3.6', '3.7', '3.8', '3.9']
@@ -71,3 +71,4 @@ jobs:
       uses: pypa/gh-action-pypi-publish@master
       with:
         password: ${{ secrets.pypi_password }}
+        skip_existing: true
