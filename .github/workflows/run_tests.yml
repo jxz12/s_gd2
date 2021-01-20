@@ -58,6 +58,11 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-10.15, macos-11.0]
         python-version: ['2.7', '3.5', '3.6', '3.7', '3.8', '3.9']
         architecture: [x64, x86]
+        exclude:
+          - os: ubuntu-latest
+            architecture: x86
+          - os: macos-*
+            architecture: x86
 
     steps:
     - name: Cancel Previous Runs
