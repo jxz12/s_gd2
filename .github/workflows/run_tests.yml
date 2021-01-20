@@ -95,12 +95,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install -U wheel setuptools
         pip install -U .[test]
-        python -c "import s_gd2"
+        python -c "import s_gd2; print(s_gd2.__version__)"
+        cd ..
 
     - name: Run tests
       run: |
-        cd test
+        cd cpp/test
         nose2 -v test_mds
+        cd ../..
 
     - name: Upload check results on fail
       if: failure()
