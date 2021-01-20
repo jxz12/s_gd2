@@ -103,6 +103,12 @@ matrix:
     env: PYTHON=3.7-dev
     osx_image: xcode9.2
   - os: osx
+    env: PYTHON=3.8-dev
+    osx_image: xcode9.2
+  - os: osx
+    env: PYTHON=3.8-dev
+    osx_image: xcode9.2
+  - os: osx
     env: PYTHON=2.7-dev
     osx_image: xcode9.4
   - os: osx
@@ -115,17 +121,47 @@ matrix:
     env: PYTHON=3.7-dev
     osx_image: xcode9.4
   - os: osx
+    env: PYTHON=3.8-dev
+    osx_image: xcode9.4
+  - os: osx
+    env: PYTHON=3.9-dev
+    osx_image: xcode9.4
+  - os: osx
     env: PYTHON=2.7-dev
-    osx_image: xcode11.2
+    osx_image: xcode11.3
   - os: osx
     env: PYTHON=3.5-dev
-    osx_image: xcode11.2
+    osx_image: xcode11.3
   - os: osx
     env: PYTHON=3.6-dev
-    osx_image: xcode11.2
+    osx_image: xcode11.3
   - os: osx
     env: PYTHON=3.7-dev
-    osx_image: xcode11.2
+    osx_image: xcode11.3
+  - os: osx
+    env: PYTHON=3.8-dev
+    osx_image: xcode11.3
+  - os: osx
+    env: PYTHON=3.9-dev
+    osx_image: xcode11.3
+  - os: osx
+    env: PYTHON=2.7-dev
+    osx_image: xcode11.6
+  - os: osx
+    env: PYTHON=3.5-dev
+    osx_image: xcode11.6
+  - os: osx
+    env: PYTHON=3.6-dev
+    osx_image: xcode11.6
+  - os: osx
+    env: PYTHON=3.7-dev
+    osx_image: xcode11.6
+  - os: osx
+    env: PYTHON=3.8-dev
+    osx_image: xcode11.6
+  - os: osx
+    env: PYTHON=3.9-dev
+    osx_image: xcode11.6
 
 before_install:
 - |
