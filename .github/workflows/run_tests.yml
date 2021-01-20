@@ -100,9 +100,9 @@ jobs:
 
     - name: Run tests
       run: |
-        cd cpp/test
-        nose2 -v test_mds
-        cd ../..
+        cd cpp
+        nose2 -v
+        cd ..
 
     - name: Upload check results on fail
       if: failure()
