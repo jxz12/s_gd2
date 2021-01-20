@@ -53,6 +53,7 @@ jobs:
 
     - name: Build a binary wheel and a source tarball
       run: |
+        cp README.md cpp/
         python -m build --sdist --wheel --outdir dist/ cpp
 
     - name: Publish distribution 📦 to Test PyPI
