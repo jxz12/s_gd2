@@ -26,6 +26,7 @@ jobs:
             architecture: x86
           - os: macos-11.0
             architecture: x86
+          - os: macos-11.0
 
     steps:
     - uses: actions/checkout@master
