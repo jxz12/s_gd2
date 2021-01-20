@@ -62,6 +62,32 @@ matrix:
         packages:
         - *core_build
         - python3.7-dev
+  - os: linux
+    env: PYTHON=3.8
+    dist: xenial
+    services:
+    - docker
+    addons:
+      apt:
+        update: true
+        sources:
+        - deadsnakes
+        packages:
+        - *core_build
+        - python3.8-dev
+  - os: linux
+    env: PYTHON=3.9
+    dist: xenial
+    services:
+    - docker
+    addons:
+      apt:
+        update: true
+        sources:
+        - deadsnakes
+        packages:
+        - *core_build
+        - python3.9-dev
   - os: osx
     env: PYTHON=2.7-dev
     osx_image: xcode9.2
