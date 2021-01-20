@@ -99,7 +99,8 @@ jobs:
 
     - name: Run tests
       run: |
-        nose2 -v
+        cd test
+        nose2 -v test_mds
 
     - name: Upload check results on fail
       if: failure()
