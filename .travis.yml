@@ -75,6 +75,7 @@ matrix:
         packages:
         - *core_build
         - python3.8-dev
+        - python3.8-distutils
   - os: linux
     env: PYTHON=3.9
     dist: xenial
@@ -88,6 +89,7 @@ matrix:
         packages:
         - *core_build
         - python3.9-dev
+        - python3.9-distutils
   - os: osx
     env: PYTHON=2.7-dev
     osx_image: xcode9.2
