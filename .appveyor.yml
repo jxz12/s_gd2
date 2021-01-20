@@ -1,5 +1,5 @@
 version: '{build}'
-image: Visual Studio 2019
+image: Visual Studio 2015
 platform:
 - x64
 - x86
@@ -13,7 +13,6 @@ environment:
   - PYTHON: 36
   - PYTHON: 37
   - PYTHON: 38
-  - PYTHON: 39
   pypipassword:
     # https://ci.appveyor.com/tools/encrypt
     #secure: GRzEKTz0q+eRwEFvm1Vdrg==
