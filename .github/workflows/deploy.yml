@@ -59,7 +59,7 @@ jobs:
         mv README.md cpp
 
     - name: Build manylinux wheels
-      if: startsWith(matrix.os, "ubuntu")
+      if: startsWith(${{ matrix.os }}, "ubuntu")
       run: |
         for PLAT in manylinux1_x86_64 manylinux2010_x86_64 manylinux1_i686; do
           DOCKER_IMAGE=quay.io/pypa/$PLAT
@@ -73,7 +73,7 @@ jobs:
         done
 
     - name: Build a binary wheel and a source tarball
-      if: (!startsWith(matrix.os, "ubuntu"))
+      if: (!startsWith(${{ matrix.os }}, "ubuntu"))
       run: |
         cd cpp
         python setup.py build
