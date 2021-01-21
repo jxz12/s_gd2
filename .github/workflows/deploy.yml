@@ -87,16 +87,24 @@ jobs:
         name: ${{ matrix.os }}_${{ matrix.python-version }}_${{ matrix.architecture }}_wheel
         path: dist
 
+
     - name: Publish distribution 📦 to Test PyPI
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        skip_existing: true
-        password: ${{ secrets.test_pypi_password }}
-        repository_url: https://test.pypi.org/legacy/
+      env:
+        PYPI_PASSWORD: ${{ secrets.test_pypi_password }}
+        REPOSITORY: testpypi
+      run: |
+        python -m pip install "six>=1.9.0"
+        python -m pip install twine
+        cp .pypirc ~/.pypirc
+        python -m twine upload -r $REPOSITORY -p $PYPI_PASSWORD --skip-existing dist/*
 
     - name: Publish distribution 📦 to PyPI
       if: startsWith(github.ref, 'refs/tags')
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        password: ${{ secrets.pypi_password }}
-        skip_existing: true
+      env:
+        PYPI_PASSWORD: ${{ secrets.pypi_password }}
+        REPOSITORY: pypi
+      run: |
+        python -m pip install "six>=1.9.0"
+        python -m pip install twine
+        cp .pypirc ~/.pypirc
+        python -m twine upload -r $REPOSITORY -p $PYPI_PASSWORD --skip-existing dist/*
