@@ -96,6 +96,7 @@ jobs:
         python -m pip install "six>=1.9.0"
         python -m pip install twine
         cp .pypirc ~/.pypirc
+        echo python -m twine upload -r $REPOSITORY -p $PYPI_PASSWORD --skip-existing dist/*
         python -m twine upload -r $REPOSITORY -p $PYPI_PASSWORD --skip-existing dist/*
 
     - name: Publish distribution 📦 to PyPI
