@@ -81,6 +81,12 @@ jobs:
         cp -r dist ..
         cd ..
 
+    - name: Upload wheel
+      uses: actions/upload-artifact@master
+      with:
+        name: ${{ matrix.os }}_${{ matrix.python-version }}_${{ matrix.architecture }}_wheel
+        path: dist
+
     - name: Publish distribution 📦 to Test PyPI
       uses: pypa/gh-action-pypi-publish@master
       with:
