@@ -81,21 +81,20 @@ jobs:
         cd cpp
         python setup.py build
         python setup.py sdist bdist_wheel
-        cp -r dist ..
         cd ..
 
     - name: Upload wheel
       uses: actions/upload-artifact@master
       with:
         name: ${{ matrix.os }}_${{ matrix.python-version }}_${{ matrix.architecture }}_wheel
-        path: dist
+        path: cpp/dist
 
 
     - name: Publish distribution 📦 to Test PyPI
       run: |
-        python -m twine upload -r testpypi -p ${{ secrets.test_pypi_password }} --skip-existing dist/*
+        python -m twine upload -r testpypi -p ${{ secrets.test_pypi_password }} --skip-existing cpp/dist/*
 
     - name: Publish distribution 📦 to PyPI
       if: startsWith(github.ref, 'refs/tags')
       run: |
-        python -m twine upload -r pypi -p ${{ secrets.pypi_password }} --skip-existing dist/*
+        python -m twine upload -r pypi -p ${{ secrets.pypi_password }} --skip-existing cpp/dist/*
