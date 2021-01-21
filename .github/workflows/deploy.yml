@@ -54,9 +54,12 @@ jobs:
 
     - name: Prepare for packaging
       run: |
+        python -m pip install "six>=1.9.0"
+        python -m pip install twine
         git clean -fxd
         git clean -fXd
         mv README.md cpp
+        cp .pypirc ~/.pypirc
 
     - name: Build manylinux wheels
       if: startsWith(matrix.os, 'ubuntu')
@@ -89,23 +92,10 @@ jobs:
 
 
     - name: Publish distribution 📦 to Test PyPI
-      env:
-        PYPI_PASSWORD: ${{ secrets.test_pypi_password }}
-        REPOSITORY: testpypi
       run: |
-        python -m pip install "six>=1.9.0"
-        python -m pip install twine
-        cp .pypirc ~/.pypirc
-        echo python -m twine upload -r $REPOSITORY -p $PYPI_PASSWORD --skip-existing dist/*
-        python -m twine upload -r $REPOSITORY -p $PYPI_PASSWORD --skip-existing dist/*
+        python -m twine upload -r testpypi -p ${{ secrets.test_pypi_password }} --skip-existing dist/*
 
     - name: Publish distribution 📦 to PyPI
       if: startsWith(github.ref, 'refs/tags')
-      env:
-        PYPI_PASSWORD: ${{ secrets.pypi_password }}
-        REPOSITORY: pypi
       run: |
-        python -m pip install "six>=1.9.0"
-        python -m pip install twine
-        cp .pypirc ~/.pypirc
-        python -m twine upload -r $REPOSITORY -p $PYPI_PASSWORD --skip-existing dist/*
+        python -m twine upload -r pypi -p ${{ secrets.pypi_password }} --skip-existing dist/*
