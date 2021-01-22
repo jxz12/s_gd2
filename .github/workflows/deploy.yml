@@ -1,0 +1,100 @@
+name: Publish Python distributions to PyPI
+
+on:
+  push:
+    branches:
+      - 'master'
+      - 'test_deploy'
+    tags:
+      - '*'
+
+jobs:
+  deploy:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-10.15, macos-11.0]
+        python-version: ['2.7', '3.5', '3.6', '3.7', '3.8', '3.9']
+        architecture: [x64, x86]
+        exclude:
+          - os: windows-latest
+            python-version: '2.7'
+          - os: ubuntu-latest
+            architecture: x86
+          - os: macos-10.15
+            architecture: x86
+          - os: macos-11.0
+            architecture: x86
+          - os: macos-11.0
+
+    steps:
+    - uses: actions/checkout@master
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+        architecture: ${{ matrix.architecture }}
+
+    - name: Cache Python packages
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.pythonLocation }}
+        key: ${{runner.os}}-pip-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}
+        restore-keys: ${{runner.os}}-pip-${{ env.pythonLocation }}-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -U wheel setuptools
+        pip install -U build Cython
+        pip install -U ./cpp
+
+    - name: Prepare for packaging
+      run: |
+        python -m pip install "six>=1.9.0"
+        python -m pip install twine
+        git clean -fxd
+        git clean -fXd
+        mv README.md cpp
+        cp .pypirc ~/.pypirc
+
+    - name: Build manylinux wheels
+      if: startsWith(matrix.os, 'ubuntu')
+      run: |
+        for PLAT in manylinux1_x86_64 manylinux2010_x86_64 manylinux1_i686; do
+          DOCKER_IMAGE=quay.io/pypa/$PLAT
+          if [ "$PLAT" == "manylinux1_i686" ]; then
+            PRE_CMD=linux32
+          else
+            PRE_CMD=""
+          fi
+        docker pull $DOCKER_IMAGE
+        docker run --rm -v `pwd`:/io -e PLAT=$PLAT -e PYTHON=${{ matrix.python-version }} $DOCKER_IMAGE $PRE_CMD /io/travis/build-wheels.sh
+        done
+
+    - name: Build a binary wheel and a source tarball
+      if: startsWith(runner.os, 'macos') || startsWith(runner.os, 'windows')
+      run: |
+        cd cpp
+        python setup.py build
+        python setup.py sdist bdist_wheel
+        cd ..
+
+    - name: Upload wheel
+      uses: actions/upload-artifact@master
+      with:
+        name: ${{ matrix.os }}_${{ matrix.python-version }}_${{ matrix.architecture }}_wheel
+        path: cpp/dist
+
+
+    - name: Publish distribution 📦 to Test PyPI
+      run: |
+        python -m twine upload -r testpypi -p ${{ secrets.test_pypi_password }} --skip-existing cpp/dist/*
+
+    - name: Publish distribution 📦 to PyPI
+      if: startsWith(github.ref, 'refs/tags')
+      run: |
+        python -m twine upload -r pypi -p ${{ secrets.pypi_password }} --skip-existing cpp/dist/*
