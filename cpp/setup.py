@@ -18,7 +18,7 @@ class get_numpy_include(object):
             return numpy.get_numpy_include()
 
 
-python_version = (int(sys.version[0]), int(sys.version[2]))
+python_version = (sys.version_info[0], sys.version_info[1])
 numpy_version = "numpy>=1.16"
 if python_version < (3, 5):
     numpy_version += ",<1.17"
