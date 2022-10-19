@@ -1,6 +1,12 @@
 import numpy as np
-from scipy.spatial.distance import pdist
 import s_gd2
+
+
+def pdist(X):
+    n = X.shape[0]
+    i_idx = np.concatenate([np.repeat(i, n-i-1) for i in range(n)])
+    j_idx = np.concatenate([np.arange(i+1, n) for i in range(n)])
+    return np.sqrt(np.sum((X[i_idx] - X[j_idx]) ** 2, axis=1))
 
 
 def test_mds():
