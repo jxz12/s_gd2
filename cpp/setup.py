@@ -38,7 +38,6 @@ install_requires = [
 
 test_requires = [
     "nose2",
-    "scipy",
 ]
 
 _layout = Extension(
