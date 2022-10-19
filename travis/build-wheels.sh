@@ -28,8 +28,8 @@ for PYBIN in /opt/python/*/bin; do
 
     # Bundle external shared libraries into the wheels
     ls -lrt $TMP_DIR
-    for whl in $(ls -1 ${TMP_DIR}); do
-      auditwheel repair --plat "$PLAT" -w "${REPAIR_DIR}" ${TMP_DIR}/$whl 
+    for whl in $(ls -1 ${TMP_DIR}/s_gd2*.whl); do
+      auditwheel repair --plat "$PLAT" -w "${REPAIR_DIR}" $whl 
     done
 
     # Install and test
