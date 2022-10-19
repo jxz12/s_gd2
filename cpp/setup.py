@@ -23,7 +23,7 @@ numpy_version = "numpy>=1.16"
 if python_version < (3, 5):
     numpy_version += ",<1.17"
 elif python_version < (3, 6):
-    numpy_version += ",<1.18"
+    numpy_version += ",<1.19"
 elif python_version < (3, 7):
     numpy_version += ",<1.20"
 
