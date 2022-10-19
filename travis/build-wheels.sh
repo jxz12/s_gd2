@@ -35,7 +35,7 @@ for PYBIN in /opt/python/*/bin; do
     # Install and test
     "${PYBIN}/pip" install $PKG_NAME --no-index -f "${REPAIR_DIR}"
     cd $SOURCE_DIR
-    "${PYBIN}/pip" install .[test]
+    "${PYBIN}/pip" install --prefer-binary .[test]
     "${PYBIN}/python" setup.py test
     cd ..
 
