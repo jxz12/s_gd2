@@ -26,7 +26,7 @@ for PYBIN in /opt/python/*/bin; do
     "${PYBIN}/pip" install --upgrade pip
     "${PYBIN}/pip" install build
     "${PYBIN}/pip" install --prefer-binary numpy || continue
-    "${PYBIN}/python" -m build -w "${TMP_DIR}"
+    "${PYBIN}/python" -m build -w -o "${TMP_DIR}" -C--prefer-binary .
 
     # Bundle external shared libraries into the wheels
     ls -lrt $TMP_DIR
