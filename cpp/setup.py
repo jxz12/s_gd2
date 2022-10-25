@@ -27,7 +27,7 @@ elif python_version < (3, 6):
 elif python_version < (3, 7):
     numpy_version += ",<1.20"
 elif python_version < (3, 8):
-    numpy_version += ",<1.21"
+    numpy_version += ",<1.22"
 
 setup_requires = [
     numpy_version,
