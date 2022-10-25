@@ -23,8 +23,10 @@ for PYBIN in /opt/python/*/bin; do
 
     # Compile wheels
     cd $SOURCE_DIR
+    "${PYBIN}/pip" install --upgrade pip
+    "${PYBIN}/pip" install build
     "${PYBIN}/pip" install --prefer-binary numpy || continue
-    "${PYBIN}/pip" wheel --prefer-binary . -w "${TMP_DIR}"
+    "${PYBIN}/python" -m build -w "${TMP_DIR}"
 
     # Bundle external shared libraries into the wheels
     ls -lrt $TMP_DIR
