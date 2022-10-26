@@ -44,14 +44,13 @@ test_requires = [
 
 _layout = Extension(
     name="_layout",
-    headers=["./s_gd2/layout.hpp", "./s_gd2/randomkit.h"],
     sources=[
         "./s_gd2/layout.cpp",
         "./s_gd2/sparse.cpp",
         "./s_gd2/swig/layout_wrap.cxx",
         "./s_gd2/randomkit.c",
     ],
-    include_dirs=[get_numpy_include()],
+    include_dirs=[get_numpy_include(), "./s_gd2/"],
 )
 
 version_py = os.path.join(os.path.dirname(__file__), "s_gd2", "version.py")
