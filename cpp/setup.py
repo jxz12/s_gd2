@@ -18,7 +18,6 @@ class get_numpy_include(object):
             return numpy.get_numpy_include()
 
 
-python_version = (sys.version_info[0], sys.version_info[1])
 numpy_version = "numpy>=1.16"
 
 setup_requires = [
