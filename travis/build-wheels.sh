@@ -24,8 +24,7 @@ for PYBIN in /opt/python/*/bin; do
     # Compile wheels
     cd $SOURCE_DIR
     "${PYBIN}/pip" install --upgrade pip
-    "${PYBIN}/python" setup.py egg_info
-    "${PYBIN}/pip" install --prefer-binary -r *.egg-info/requires.txt || continue
+    "${PYBIN}/pip" install --prefer-binary "numpy>=1.16" || continue
     "${PYBIN}/pip" wheel --prefer-binary . -w "${TMP_DIR}"
 
     # Bundle external shared libraries into the wheels
