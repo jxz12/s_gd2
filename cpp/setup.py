@@ -20,14 +20,6 @@ class get_numpy_include(object):
 
 python_version = (sys.version_info[0], sys.version_info[1])
 numpy_version = "numpy>=1.16"
-if python_version < (3, 5):
-    numpy_version += ",<1.17"
-elif python_version < (3, 6):
-    numpy_version += ",<1.19"
-elif python_version < (3, 7):
-    numpy_version += ",<1.20"
-elif python_version < (3, 8):
-    numpy_version += ",<1.21"
 
 setup_requires = [
     numpy_version,
