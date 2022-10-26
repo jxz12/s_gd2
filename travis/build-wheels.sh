@@ -45,6 +45,7 @@ for PYBIN in /opt/python/*/bin; do
 
     # Clean up
     "${PYBIN}/pip" uninstall -y $PKG_NAME
+    "${PYBIN}/pip" uninstall -y numpy
     rm -rf build
     
     # Move wheel to output directory
