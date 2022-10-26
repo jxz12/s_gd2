@@ -25,7 +25,6 @@ for PYBIN in /opt/python/*/bin; do
     cd $SOURCE_DIR
     "${PYBIN}/pip" install --upgrade pip
     "${PYBIN}/pip" install build
-    "${PYBIN}/pip" install --prefer-binary numpy || continue
     "${PYBIN}/python" -m build -w -o "${TMP_DIR}" -C--prefer-binary .
 
     # Bundle external shared libraries into the wheels
@@ -35,9 +34,9 @@ for PYBIN in /opt/python/*/bin; do
     done
 
     # Install and test
-    "${PYBIN}/pip" install $PKG_NAME --no-index -f "${REPAIR_DIR}"
     cd $SOURCE_DIR
     "${PYBIN}/pip" install --prefer-binary .[test]
+    "${PYBIN}/pip" install $PKG_NAME --no-index -f "${REPAIR_DIR}"
     "${PYBIN}/python" setup.py test
     cd ..
 
