@@ -29,19 +29,17 @@ for PYBIN in /opt/python/*/bin; do
 
     # Bundle external shared libraries into the wheels
     ls -lrt $TMP_DIR
-    for whl in $(ls -1 ${TMP_DIR}/*.whl); do
-      if [[ "$whl" == *"s_gd2"* ]]; then
-        auditwheel repair --plat "$PLAT" -w "${REPAIR_DIR}" $whl 
-      else
-        # don't need to repair dependency wheels
-        mv $whl "${REPAIR_DIR}"
-      fi
+    for whl in $(ls -1 ${TMP_DIR}/s_gd2*.whl); do
+      auditwheel repair --plat "$PLAT" -w "${REPAIR_DIR}" $whl 
     done
 
-    # Install and test
-    "${PYBIN}/pip" install $PKG_NAME --no-index -f "${REPAIR_DIR}"
     cd $SOURCE_DIR
+    # install deps
     "${PYBIN}/pip" install --prefer-binary .[test]
+    # install s_gd2 directly from wheel
+    "${PYBIN}/pip" uninstall -y $PKG_NAME
+    "${PYBIN}/pip" install $PKG_NAME --no-index -f "${REPAIR_DIR}"
+    # run tests
     "${PYBIN}/python" setup.py test
     cd ..
 
