@@ -42,13 +42,13 @@ install:
 build_script:
 - ps: cd cpp
 - cmd: |
-    python -m pip install -U .
+    python -m pip install -U --prefer-binary .
 - ps: cd ..
 
 test_script:
 - ps: cd cpp
 - cmd: |
-    python -m pip install -U .[test]
+    python -m pip install -U --prefer-binary .[test]
     python setup.py test
 - ps: cd ..
 
