@@ -3,6 +3,7 @@ from setuptools.extension import Extension
 
 import sys
 import os
+import platform
 
 # Third-party modules - we depend on numpy for everything
 class get_numpy_include(object):
@@ -18,7 +19,17 @@ class get_numpy_include(object):
             return numpy.get_numpy_include()
 
 
+python_version = (sys.version_info[0], sys.version_info[1])
 numpy_version = "numpy>=1.16"
+if platform.system() == "Windows":
+    if python_version < (3, 5):
+        numpy_version += ",<1.17"
+    elif python_version < (3, 6):
+        numpy_version += ",<1.19"
+    elif python_version < (3, 7):
+        numpy_version += ",<1.20"
+    elif python_version < (3, 8):
+        numpy_version += ",<1.21"
 
 setup_requires = [
     numpy_version,
