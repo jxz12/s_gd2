@@ -3,6 +3,7 @@ from setuptools.extension import Extension
 
 import sys
 import os
+import platform
 
 # Third-party modules - we depend on numpy for everything
 class get_numpy_include(object):
@@ -20,14 +21,15 @@ class get_numpy_include(object):
 
 python_version = (sys.version_info[0], sys.version_info[1])
 numpy_version = "numpy>=1.16"
-if python_version < (3, 5):
-    numpy_version += ",<1.17"
-elif python_version < (3, 6):
-    numpy_version += ",<1.19"
-elif python_version < (3, 7):
-    numpy_version += ",<1.20"
-elif python_version < (3, 8):
-    numpy_version += ",<1.21"
+if platform.system() == "Windows":
+    if python_version < (3, 5):
+        numpy_version += ",<1.17"
+    elif python_version < (3, 6):
+        numpy_version += ",<1.19"
+    elif python_version < (3, 7):
+        numpy_version += ",<1.20"
+    elif python_version < (3, 8):
+        numpy_version += ",<1.21"
 
 setup_requires = [
     numpy_version,
@@ -44,14 +46,13 @@ test_requires = [
 
 _layout = Extension(
     name="_layout",
-    headers=["./s_gd2/layout.hpp", "./s_gd2/randomkit.h"],
     sources=[
         "./s_gd2/layout.cpp",
         "./s_gd2/sparse.cpp",
         "./s_gd2/swig/layout_wrap.cxx",
         "./s_gd2/randomkit.c",
     ],
-    include_dirs=[get_numpy_include()],
+    include_dirs=[get_numpy_include(), "./s_gd2/"],
 )
 
 version_py = os.path.join(os.path.dirname(__file__), "s_gd2", "version.py")

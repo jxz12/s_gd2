@@ -26,7 +26,8 @@ for PYBIN in /opt/python/*/bin; do
 
     # Compile wheels
     cd $SOURCE_DIR
-    "${PYBIN}/pip" install --prefer-binary numpy || continue
+    "${PYBIN}/pip" install --upgrade pip
+    "${PYBIN}/pip" install --prefer-binary "numpy>=1.16" || continue
     "${PYBIN}/pip" wheel --prefer-binary . -w "${TMP_DIR}"
 
     # Bundle external shared libraries into the wheels
@@ -35,15 +36,19 @@ for PYBIN in /opt/python/*/bin; do
       auditwheel repair --plat "$PLAT" -w "${REPAIR_DIR}" $whl 
     done
 
-    # Install and test
-    "${PYBIN}/pip" install $PKG_NAME --no-index -f "${REPAIR_DIR}"
     cd $SOURCE_DIR
+    # install deps
     "${PYBIN}/pip" install --prefer-binary .[test]
+    # install s_gd2 directly from wheel
+    "${PYBIN}/pip" uninstall -y $PKG_NAME
+    "${PYBIN}/pip" install $PKG_NAME --no-index -f "${REPAIR_DIR}"
+    # run tests
     "${PYBIN}/python" setup.py test
     cd ..
 
     # Clean up
     "${PYBIN}/pip" uninstall -y $PKG_NAME
+    "${PYBIN}/pip" uninstall -y numpy
     rm -rf build
     
     # Move wheel to output directory
