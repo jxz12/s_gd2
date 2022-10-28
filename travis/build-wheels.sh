@@ -14,6 +14,9 @@ for PYBIN in /opt/python/*/bin; do
     if [ $("${PYBIN}/python" --version 2>&1 | grep -c "Python ${PYTHON}") -eq 0 ]; then
         continue
     fi
+    if [[ "${PYBIN}" == *"pypy3.8"* ]]; then
+        continue
+    fi
 
     # Setup
     TMP_DIR="${SOURCE_DIR}/wheelhouse_tmp/${PLAT}/${PYBIN}"
