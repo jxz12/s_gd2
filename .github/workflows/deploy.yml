@@ -76,8 +76,8 @@ jobs:
       run: |
         mkdir cpp/dist
         for ARCH in x86_64 i686; do
-          for VER in 2_5 2_12 2_17 2_22 2_28; do
-            PLAT="manylinux_${VER}_${ARCH}"
+          for VER in 1 2010 2014 _2_24 _2_28; do
+            PLAT="manylinux${VER}_${ARCH}"
             DOCKER_IMAGE=quay.io/pypa/$PLAT
             if [ "$ARCH" == "i686" ]; then
               PRE_CMD=linux32
