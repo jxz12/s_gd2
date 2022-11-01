@@ -10,7 +10,7 @@ mv README.md cpp
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     # manylinux build
     echo "Building manylinux wheels with auditwheel and docker"
-    for PLAT in manylinux1_x86_64 manylinux2010_x86_64 manylinux1_i686; do
+    for PLAT in manylinux_2_28_x86_64 manylinux2014_x86_64 manylinux2014_i686 manylinux_2_24_x86_64 manylinux_2_24_i686 manylinux2010_x86_64 manylinux2010_i686 manylinux1_x86_64 manylinux1_i686; do
         DOCKER_IMAGE=quay.io/pypa/$PLAT
         if [ "$PLAT" == "manylinux1_i686" ]; then
             PRE_CMD=linux32
