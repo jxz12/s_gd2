@@ -74,15 +74,22 @@ jobs:
     - name: Build manylinux wheels
       if: startsWith(matrix.os, 'ubuntu')
       run: |
-        for PLAT in manylinux_2_28_x86_64 manylinux2014_x86_64 manylinux2014_i686 manylinux_2_24_x86_64 manylinux_2_24_i686 manylinux2010_x86_64 manylinux2010_i686 manylinux1_x86_64 manylinux1_i686; do
-          DOCKER_IMAGE=quay.io/pypa/$PLAT
-          if [ "$PLAT" == *"i686"* ]; then
-            PRE_CMD=linux32
-          else
-            PRE_CMD=""
+        mkdir cpp/dist
+        for ARCH in x86_64 i686; do
+          for VER in _2_28 _2_24 2014 2010 1; do
+            PLAT="manylinux${VER}_${ARCH}"
+            DOCKER_IMAGE=quay.io/pypa/$PLAT
+            if [ "$ARCH" == "i686" ]; then
+              PRE_CMD=linux32
+            else
+              PRE_CMD=""
+            fi
+          docker pull $DOCKER_IMAGE
+          docker run --rm -v `pwd`:/io -e PLAT=$PLAT -e PYTHON=${{ matrix.python-version }} $DOCKER_IMAGE $PRE_CMD /io/travis/build-wheels.sh || true
+          done
+          if [ $(ls -1 "cpp/dist/*${ARCH}*" | wc -l) -eq 0 ]; then
+            exit 1
           fi
-        docker pull $DOCKER_IMAGE
-        docker run --rm -v `pwd`:/io -e PLAT=$PLAT -e PYTHON=${{ matrix.python-version }} $DOCKER_IMAGE $PRE_CMD /io/travis/build-wheels.sh
         done
 
     - name: Build a binary wheel and a source tarball
