@@ -76,16 +76,16 @@ jobs:
       run: |
         mkdir cpp/dist
         for ARCH in x86_64 i686; do
-          for VER in _2_28 _2_24 2014 2010 1; do
-            PLAT="manylinux${VER}_${ARCH}"
+          for VER in 2_5 2_12 2_17 2_22 2_28; do
+            PLAT="manylinux_${VER}_${ARCH}"
             DOCKER_IMAGE=quay.io/pypa/$PLAT
             if [ "$ARCH" == "i686" ]; then
               PRE_CMD=linux32
             else
               PRE_CMD=""
             fi
-          docker pull $DOCKER_IMAGE
-          docker run --rm -v `pwd`:/io -e PLAT=$PLAT -e PYTHON=${{ matrix.python-version }} $DOCKER_IMAGE $PRE_CMD /io/travis/build-wheels.sh || true
+            docker pull $DOCKER_IMAGE || continue
+            docker run --rm -v `pwd`:/io -e PLAT=$PLAT -e PYTHON=${{ matrix.python-version }} $DOCKER_IMAGE $PRE_CMD /io/travis/build-wheels.sh || true
           done
           ls -1 cpp/dist
           if [ $(ls -1 cpp/dist/*${ARCH}* | wc -l) -eq 0 ]; then
