@@ -17,6 +17,9 @@ for PYBIN in /opt/python/*/bin; do
     if [[ "${PYBIN}" == *"pypy38"* ]]; then
         continue
     fi
+    if [[ "${PYBIN}" == *"pypy39"* ]]; then
+        continue
+    fi
 
     # Setup
     TMP_DIR="${SOURCE_DIR}/wheelhouse_tmp/${PLAT}/${PYBIN}"
@@ -55,5 +58,7 @@ for PYBIN in /opt/python/*/bin; do
     for whl in $(ls -1 ${REPAIR_DIR} | grep $PKG_NAME); do
       mv ${REPAIR_DIR}/$whl "${OUT_DIR}"
     done
+    rm -rf "${TMP_DIR}"
+    rm -rf "${REPAIR_DIR}"
 done
 
