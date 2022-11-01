@@ -2,7 +2,7 @@
 set -e -x
 
 # Auditwheel requirements
-yum install -y atlas-devel || apt update && apt install -y libatlas-base-dev
+yum install -y atlas-devel || (apt update && apt install -y libatlas-base-dev)
 
 SOURCE_DIR="/io/cpp"
 PKG_NAME="s_gd2"
