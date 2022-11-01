@@ -88,7 +88,7 @@ jobs:
           docker run --rm -v `pwd`:/io -e PLAT=$PLAT -e PYTHON=${{ matrix.python-version }} $DOCKER_IMAGE $PRE_CMD /io/travis/build-wheels.sh || true
           done
           ls -1 cpp/dist
-          if [ $(ls -1 "cpp/dist/*${ARCH}*" | wc -l) -eq 0 ]; then
+          if [ $(ls -1 cpp/dist/*${ARCH}* | wc -l) -eq 0 ]; then
             exit 1
           fi
         done
