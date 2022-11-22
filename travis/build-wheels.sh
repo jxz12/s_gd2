@@ -2,7 +2,7 @@
 set -e -x
 
 # Auditwheel requirements
-yum install -y atlas-devel
+yum install -y atlas-devel || (apt update && apt install -y libatlas-base-dev)
 
 SOURCE_DIR="/io/cpp"
 PKG_NAME="s_gd2"
@@ -15,6 +15,9 @@ for PYBIN in /opt/python/*/bin; do
         continue
     fi
     if [[ "${PYBIN}" == *"pypy38"* ]]; then
+        continue
+    fi
+    if [[ "${PYBIN}" == *"pypy39"* ]]; then
         continue
     fi
 
@@ -55,5 +58,7 @@ for PYBIN in /opt/python/*/bin; do
     for whl in $(ls -1 ${REPAIR_DIR} | grep $PKG_NAME); do
       mv ${REPAIR_DIR}/$whl "${OUT_DIR}"
     done
+    rm -rf "${TMP_DIR}"
+    rm -rf "${REPAIR_DIR}"
 done
 
